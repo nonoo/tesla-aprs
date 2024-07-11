@@ -31,3 +31,9 @@ pip install -r requirements.txt
 ## Running
 
 Get the command line arguments using `-h`
+
+Example position upload:
+
+```
+python tesla-aprs.py -e nonoo@nonoo.hu -c HA2NON-12 -m BEER
+```
