@@ -38,9 +38,9 @@ Use `env/bin/python` instead of the system Python binary.
 The script asks for a Tesla refresh token when run for the first time.
 You will need an application to generate a refresh token:
 
-Android: [Tesla Tokens](https://play.google.com/store/apps/details?id=net.leveugle.teslatokens)
-iOS: [Auth App for Tesla](https://apps.apple.com/us/app/auth-app-for-tesla/id1552058613)
-Chromium/Edge: [Chromium Tesla Token Generator](https://github.com/DoctorMcKay/chromium-tesla-token-generator)
+- Android: [Tesla Tokens](https://play.google.com/store/apps/details?id=net.leveugle.teslatokens)
+- iOS: [Auth App for Tesla](https://apps.apple.com/us/app/auth-app-for-tesla/id1552058613)
+- Chromium/Edge: [Chromium Tesla Token Generator](https://github.com/DoctorMcKay/chromium-tesla-token-generator)
 
 Login session data is stored into the file `cache.json`, so you don't need to
 enter the refresh token every time the script runs. Make sure the current
