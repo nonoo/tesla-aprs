@@ -1,0 +1,10 @@
+aprslib==0.7.2
+certifi==2024.7.4
+charset-normalizer==3.3.2
+idna==3.7
+oauthlib==3.2.2
+requests==2.32.3
+requests-oauthlib==2.0.0
+TeslaPy==2.9.0
+urllib3==2.2.2
+websocket-client==1.8.0
