@@ -24,6 +24,11 @@ def get_tesla_data(email):
         vehicle = vehicles[0]
         return vehicle['drive_state'], vehicle['charge_state']
 
+def get_hours_and_mins_from_mins(total_minutes):
+    hours = total_minutes // 60
+    minutes = total_minutes % 60
+    return hours, minutes
+
 def get_aprs_passcode_for_callsign(callsign):
     hash = 0x73e2
     callsign = callsign[:10]
@@ -118,8 +123,9 @@ def main(argv):
         sys.exit(1)
 
     range_miles = charge_state['battery_range']
-    range_km = str(int(range_miles * 1.60934)) + "km"
-    chg_pwr = str(charge_state['charger_power']) + "W"
+    range_str = str(int(range_miles * 1.60934)) + "km"
+    charger_pwr_kw = charge_state['charger_power']
+    charger_rem_mins = charge_state['minutes_to_full_charge']
 
     if not silent:
         print(f"  Timestamp: {drive_state['gps_as_of']}")
@@ -129,17 +135,29 @@ def main(argv):
         print(f"  Heading: {drive_state['heading']}")
         print(f"  Shift state: {drive_state['shift_state']}")
         print(f"  Battery level: {charge_state['battery_level']}%")
-        print(f"  Est. range: {range_km}")
-        print(f"  Charger power: {chg_pwr}")
+        print(f"  Est. range: {range_str}")
 
     speed = drive_state['speed']
     if not speed:
         speed = 0
 
-    state = f"Battery {charge_state['battery_level']}% Est. range: {range_km}"
-    if charge_state['charger_power']:
-        state += f" (Charging {chg_pwr})"
+    state = f"Battery {charge_state['battery_level']}% Est. range: {range_str}"
+    if charger_pwr_kw:
+        charger_pwr_str = str(charger_pwr_kw) + "kW"
+        if not silent:
+            print(f"  Charger power: {charger_pwr_str}")
+
+        if charger_rem_mins:
+            hours, mins = get_hours_and_mins_from_mins(charger_rem_mins)
+            charger_rem_str = f"{hours}h{mins}m"
+            if not silent:
+                print(f"  Charge remaining: {charger_rem_str}")
+            state += f" (Charging {charger_pwr_str}/{charger_rem_str})"
+        else:
+            state += f" (Charger connected {charger_pwr_str})"
     elif not drive_state['shift_state']:
+        if not silent:
+            print("  Parked")
         state += " (Parked)"
 
     send_aprs_location_report(callsign, drive_state['gps_as_of'], drive_state['latitude'], drive_state['longitude'], speed, drive_state['heading'], msg, state)
