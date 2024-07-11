@@ -59,7 +59,7 @@ def send_aprs_location_report(callsign, ts, latitude, longitude, speed, course, 
     aprs_lng = convert_coord_to_aprs(longitude, False)
     lat_hemisphere = 'N' if latitude >= 0 else 'S'
     lng_hemisphere = 'E' if longitude >= 0 else 'W'
-    aprs_speed = int(speed * 0.539957)  # Km/h to knots
+    aprs_speed = int(speed * 0.539957) # Km/h to knots
     aprs_course = int(course)
     day, hours, minutes = convert_unix_timestamp_to_aprs(ts)
 
@@ -117,7 +117,8 @@ def main(argv):
         print("Can't get vehicle data, exiting")
         sys.exit(1)
 
-    range_km = str(int(charge_state['battery_range']*1.60934)) + "km"
+    range_miles = charge_state['battery_range']
+    range_km = str(int(range_miles * 1.60934)) + "km"
     chg_pwr = str(charge_state['charger_power']) + "W"
 
     if not silent:
