@@ -11,6 +11,7 @@ def exit(code):
     sys.exit(code)
 
 def tesla_stream_process_handle_set(h):
+    global tesla_stream_process_handle
     tesla_stream_process_handle = h
 
 def get_hours_and_mins_from_mins(total_minutes):
