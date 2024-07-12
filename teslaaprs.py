@@ -103,7 +103,7 @@ def main(argv):
     if interval_sec:
         interval_sec = int(interval_sec)
     else:
-        interval_sec = 30
+        interval_sec = 60
 
     vehicle_nr = os.environ.get('TESLAAPRS_VEHICLE_NR')
     if vehicle_nr:
@@ -170,7 +170,7 @@ def main(argv):
             if not msg_queue.empty():
                 break
 
-            if int(time.time()) - last_update_at > interval_sec:
+            if int(time.time()) - last_update_at > 30:
                 log("Tesla update stream timeout, restarting...")
                 tesla_stream_process_stop()
                 tesla_stream_process_start(email, vehicle_nr, msg_queue)
