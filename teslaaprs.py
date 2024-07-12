@@ -164,6 +164,9 @@ def main(argv):
 
     tesla_update_force(tesla, vehicle_nr)
 
+    log(f"Sleeping for {interval_sec} seconds...")
+    sec_to_sleep = interval_sec
+
     while True:
         while not msg_queue.empty():
             msg = msg_queue.get()
@@ -172,12 +175,14 @@ def main(argv):
                 exit(1)
             tesla_stream_process_data(msg)
 
-        update(tesla, vehicle_nr, callsign, msg)
-        log(f"Sleeping for {interval_sec} seconds...")
-        sec = interval_sec
-        while sec > 0:
+        while sec_to_sleep > 0:
             time.sleep(1)
-            sec -= 1
+            sec_to_sleep -= 1
+            if sec_to_sleep == 0:
+                update(tesla, vehicle_nr, callsign, msg)
+                log(f"Sleeping for {interval_sec} seconds...")
+                sec_to_sleep = interval_sec
+
             if not msg_queue.empty():
                 break
 
