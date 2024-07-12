@@ -5,10 +5,15 @@ import sys
 tesla_stream_process_handle = None
 
 def exit(code):
+    tesla_stream_process_close()
+    sys.exit(code)
+
+def tesla_stream_process_close():
+    global tesla_stream_process_handle
     if tesla_stream_process_handle:
         tesla_stream_process_handle.terminate()
         tesla_stream_process_handle.join()
-    sys.exit(code)
+        tesla_stream_process_handle = None
 
 def tesla_stream_process_handle_set(h):
     global tesla_stream_process_handle
