@@ -1,4 +1,6 @@
-# tesla-aprs
+# Tesla APRS
+
+Sends Tesla vehicle location and status to the APRS-IS.
 
 ## Installation
 
