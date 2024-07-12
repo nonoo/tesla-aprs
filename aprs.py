@@ -2,7 +2,6 @@ from helper import *
 from log import *
 
 import aprslib
-import sys
 
 def send_aprs_location_report(callsign, ts, lat, lng, speed_kmh, heading, altitude_m, msg, state):
     callsign_without_ssid = callsign.split("-")[0]

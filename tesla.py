@@ -1,8 +1,6 @@
 from log import *
 from helper import *
 
-import sys
-
 vehicle_last_seen_ts = None
 vehicle_charge_percent = None
 vehicle_lat = None
