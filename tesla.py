@@ -21,6 +21,15 @@ vehicle_shift_state = None
 def tesla_get_data():
 	return vehicle_last_seen_ts, vehicle_charge_percent, vehicle_lat, vehicle_lng, vehicle_speed_kmh, vehicle_heading, vehicle_altitude_m, vehicle_range_km, vehicle_shift_state
 
+def tesla_init(email):
+    tesla = teslapy.Tesla(email)
+    if not tesla.authorized:
+        refresh_token = os.environ.get('TESLAAPRS_REFRESH_TOKEN')
+        if not refresh_token:
+            refresh_token = input('Enter Tesla refresh token (see README for details): ')
+        tesla.refresh_token(refresh_token=refresh_token)
+    return tesla
+
 def tesla_get_vehicle(tesla, vehicle_nr):
     vehicles = tesla.vehicle_list()
     if not vehicles:
@@ -45,26 +54,25 @@ def tesla_stream_process(email, vehicle_nr, msg_queue):
     if not tesla.authorized:
         refresh_token = os.environ.get('TESLAAPRS_REFRESH_TOKEN')
         if not refresh_token:
-            print("No refresh token provided")
+            print("TeslaUpdateStream: No refresh token provided")
             stream_msg_queue.put(None)
             return
         tesla.refresh_token(refresh_token=refresh_token)
 
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     while True:
-        log("Tesla update stream connecting...")
+        log("TeslaUpdateStream: Connecting...")
         last_connect_ts = int(time.time())
         try:
             vehicle.stream(tesla_stream_cb) # This call blocks
         except Exception as e:
             print(e)
-            stream_msg_queue.put(None)
-            return
+            pass
 
         retry_interval_sec = 10
         remaining_sec_until_retry = retry_interval_sec - (int(time.time()) - last_connect_ts)
         if remaining_sec_until_retry > 0:
-            log(f"Tesla update stream disconnected, retrying in {remaining_sec_until_retry} seconds...")
+            log(f"TeslaUpdateStream: Disconnected, retrying in {remaining_sec_until_retry} seconds...")
             time.sleep(remaining_sec_until_retry)
 
 def tesla_stream_process_start(email, vehicle_nr, msg_queue):

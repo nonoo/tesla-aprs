@@ -32,12 +32,15 @@ def update(tesla, vehicle_nr, callsign, msg):
 
     state = f"Batt. {vehicle_charge_percent}% {vehicle_range_km}km"
 
+    charger_pwr_kw = None
+
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     if vehicle.available():
         log("Vehicle awake, querying data...")
         try:
             climate_state = vehicle['climate_state']
             if climate_state:
+                log(f"  Outside temp: {climate_state['outside_temp']}C")
                 state += " " + str(climate_state['outside_temp']) + "C"
 
             charge_state = vehicle['charge_state']
@@ -45,8 +48,8 @@ def update(tesla, vehicle_nr, callsign, msg):
                 charger_pwr_kw = charge_state['charger_power']
                 charger_rem_mins = charge_state['minutes_to_full_charge']
         except Exception as e:
-            print(e)
-            exit(1)
+            print("Error querying vehicle data: " + str(e))
+            pass
 
     if charger_pwr_kw:
         charger_pwr_str = str(charger_pwr_kw) + "kW"
@@ -136,12 +139,7 @@ def main(argv):
 
     signal.signal(signal.SIGINT, sigint_handler)
 
-    tesla = teslapy.Tesla(email)
-    if not tesla.authorized:
-        refresh_token = os.environ.get('TESLAAPRS_REFRESH_TOKEN')
-        if not refresh_token:
-            refresh_token = input('Enter Tesla refresh token (see README for details): ')
-        tesla.refresh_token(refresh_token=refresh_token)
+    tesla = tesla_init(email)
 
     msg_queue = multiprocessing.Queue()
     tesla_stream_process_start(email, vehicle_nr, msg_queue)
@@ -154,11 +152,11 @@ def main(argv):
 
     while True:
         while not msg_queue.empty():
-            msg = msg_queue.get()
-            if not msg:
+            msg_from_queue = msg_queue.get()
+            if not msg_from_queue:
                 print("Tesla update error, exiting...")
                 exit(1)
-            tesla_stream_process_data(msg)
+            tesla_stream_process_data(msg_from_queue)
             last_update_at = int(time.time())
 
         while sec_to_sleep > 0:
