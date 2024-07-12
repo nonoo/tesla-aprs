@@ -11,6 +11,7 @@ import os
 import time
 import signal
 import multiprocessing
+import logging
 
 tesla_stream_process_handle = None
 last_report_ts = None
@@ -120,7 +121,7 @@ def main(argv):
         vehicle_nr = 0
 
     try:
-        opts, _ = getopt.getopt(argv, "e:c:m:si:n:", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr="])
+        opts, _ = getopt.getopt(argv, "e:c:m:si:n:d", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr=", "debug="])
     except getopt.GetoptError:
         print_usage()
         sys.exit(1)
@@ -138,6 +139,8 @@ def main(argv):
             interval_sec = int(arg)
         elif opt in ("-n", "--vehiclenr"):
             vehicle_nr = int(arg)
+        elif opt in ("-d", "--debug"):
+            logging.basicConfig(level=logging.DEBUG)
 
     if not email or not callsign:
         print_usage()
