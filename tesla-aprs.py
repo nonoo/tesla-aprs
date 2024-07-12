@@ -174,6 +174,7 @@ def update(tesla, vehicle_nr, callsign, msg):
             charger_rem_mins = charge_state['minutes_to_full_charge']
 
     state += f"Batt. {vehicle_charge_percent}% ({vehicle_range_km}km)"
+
     if charger_pwr_kw:
         charger_pwr_str = str(charger_pwr_kw) + "kW"
         log(f"  Charger pwr: {charger_pwr_str}")
