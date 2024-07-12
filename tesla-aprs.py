@@ -125,10 +125,10 @@ def send_aprs_location_report(callsign, msg, state):
     try:
         aprs_conn = aprslib.IS(callsign_without_ssid, get_aprs_passcode_for_callsign(callsign_without_ssid))
         aprs_conn.connect()
-        pkt = f"{callsign}>APRS,TCPIP*:@{day}{hours}{minutes}z{aprs_lat}{lat_hemisphere}/{aprs_lng}{lng_hemisphere}>{aprs_course:03d}/{aprs_speed:03d}{msg}/A={altitude_feet:06d}"
+        pkt = f"{callsign}>APTSLA,TCPIP*:@{day}{hours}{minutes}z{aprs_lat}{lat_hemisphere}/{aprs_lng}{lng_hemisphere}>{aprs_course:03d}/{aprs_speed:03d}{msg}/A={altitude_feet:06d}"
         log(f"  {pkt}")
         aprs_conn.sendall(pkt)
-        pkt = f"{callsign}>APRS,TCPIP*:>{day}{hours}{minutes}z{state}"
+        pkt = f"{callsign}>APTSLA,TCPIP*:>{day}{hours}{minutes}z{state}"
         log(f"  {pkt}")
         aprs_conn.sendall(pkt)
     except Exception as e:
