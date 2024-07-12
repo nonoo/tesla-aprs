@@ -144,12 +144,13 @@ def main(argv):
         tesla.refresh_token(refresh_token=refresh_token)
 
     msg_queue = multiprocessing.Queue()
-    tesla_stream_process_start(tesla, vehicle_nr, msg_queue)
+    tesla_stream_process_start(email, vehicle_nr, msg_queue)
 
     # tesla_update_force(tesla, vehicle_nr)
 
     log(f"Sleeping for {interval_sec} seconds...")
     sec_to_sleep = interval_sec
+    last_update_at = int(time.time())
 
     while True:
         while not msg_queue.empty():
@@ -158,6 +159,7 @@ def main(argv):
                 print("Tesla update error, exiting...")
                 exit(1)
             tesla_stream_process_data(msg)
+            last_update_at = int(time.time())
 
         while sec_to_sleep > 0:
             time.sleep(1)
@@ -170,11 +172,11 @@ def main(argv):
             if not msg_queue.empty():
                 break
 
-            vehicle_last_seen_ts, _, _, _, _, _, _, _, _ = tesla_get_data()
-            if vehicle_last_seen_ts and int(time.time()) - vehicle_last_seen_ts > interval_sec:
+            if int(time.time()) - last_update_at > interval_sec:
                 log("Tesla update stream timeout, restarting...")
                 tesla_stream_process_stop()
-                tesla_stream_process_start(tesla, vehicle_nr, msg_queue)
+                tesla_stream_process_start(email, vehicle_nr, msg_queue)
+                last_update_at = int(time.time())
 
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -2,6 +2,9 @@ from log import *
 from helper import *
 
 import multiprocessing
+import teslapy
+import os
+import time
 
 tesla_stream_process_handle = None
 
@@ -34,12 +37,23 @@ def tesla_stream_cb(data):
     global stream_msg_queue
     stream_msg_queue.put(data)
 
-def tesla_stream_process(tesla, vehicle_nr, msg_queue):
+def tesla_stream_process(email, vehicle_nr, msg_queue):
     global stream_msg_queue
     stream_msg_queue = msg_queue
+
+    tesla = teslapy.Tesla(email)
+    if not tesla.authorized:
+        refresh_token = os.environ.get('TESLAAPRS_REFRESH_TOKEN')
+        if not refresh_token:
+            print("No refresh token provided")
+            stream_msg_queue.put(None)
+            return
+        tesla.refresh_token(refresh_token=refresh_token)
+
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     while True:
         log("Tesla update stream connecting...")
+        last_connect_ts = int(time.time())
         try:
             vehicle.stream(tesla_stream_cb) # This call blocks
         except Exception as e:
@@ -47,9 +61,15 @@ def tesla_stream_process(tesla, vehicle_nr, msg_queue):
             stream_msg_queue.put(None)
             return
 
-def tesla_stream_process_start(tesla, vehicle_nr, msg_queue):
+        retry_interval_sec = 10
+        remaining_sec_until_retry = retry_interval_sec - (int(time.time()) - last_connect_ts)
+        if remaining_sec_until_retry > 0:
+            log(f"Tesla update stream disconnected, retrying in {remaining_sec_until_retry} seconds...")
+            time.sleep(remaining_sec_until_retry)
+
+def tesla_stream_process_start(email, vehicle_nr, msg_queue):
     global tesla_stream_process_handle
-    tesla_stream_process_handle = multiprocessing.Process(target=tesla_stream_process, args=(tesla, vehicle_nr, msg_queue)).start()
+    tesla_stream_process_handle = multiprocessing.Process(target=tesla_stream_process, args=(email, vehicle_nr, msg_queue)).start()
 
 def tesla_stream_process_stop():
     global tesla_stream_process_handle
