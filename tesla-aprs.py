@@ -161,31 +161,32 @@ def update(tesla, vehicle_nr, callsign, msg):
     global vehicle_range_km
     global vehicle_shift_state
 
+    state = f"Batt. {vehicle_charge_percent}% ({vehicle_range_km}km)"
+
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     if vehicle.available():
         log("Vehicle awake, querying data...")
         climate_state = vehicle['climate_state']
         if climate_state:
-            state = str(climate_state['outside_temp']) + "C "
+            state += " " + str(climate_state['outside_temp']) + "C"
 
         charge_state = vehicle['charge_state']
         if charge_state:
             charger_pwr_kw = charge_state['charger_power']
             charger_rem_mins = charge_state['minutes_to_full_charge']
 
-    state += f"Batt. {vehicle_charge_percent}% ({vehicle_range_km}km)"
-
     if charger_pwr_kw:
         charger_pwr_str = str(charger_pwr_kw) + "kW"
         log(f"  Charger pwr: {charger_pwr_str}")
+        state += f" (Chg {charger_pwr_str}"
 
         if charger_rem_mins:
             hours, mins = get_hours_and_mins_from_mins(charger_rem_mins)
             charger_rem_str = f"{hours}h{mins}m"
             log(f"  Charge rem.: {charger_rem_str}")
-            state += f" (Charging {charger_pwr_str}/{charger_rem_str})"
-        else:
-            state += f" (On charger {charger_pwr_str})"
+            state += f"/{charger_rem_str}"
+
+        state += ")"
     elif not vehicle_shift_state:
         log("  Parked")
         state += " (Parked)"
