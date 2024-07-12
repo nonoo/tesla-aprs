@@ -171,9 +171,6 @@ def main(argv):
                 break
 
             vehicle_last_seen_ts, _, _, _, _, _, _, _, _ = tesla_get_data()
-            if vehicle_last_seen_ts:
-                a = int(time.time()) - vehicle_last_seen_ts
-                print(f"{time.time()} - {vehicle_last_seen_ts} {a} > {interval_sec}")
             if vehicle_last_seen_ts and int(time.time()) - vehicle_last_seen_ts > interval_sec:
                 log("Tesla update stream timeout, restarting...")
                 tesla_stream_process_stop()
