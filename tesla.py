@@ -49,11 +49,11 @@ def tesla_stream_process_data(data):
         log(f"  Longitude: {vehicle_lng}")
     if 'speed' in data:
         global vehicle_speed_kmh
-        vehicle_speed_kmh = data['speed'] # Convert mph to kmh
+        vehicle_speed_kmh = data['speed']
         if not vehicle_speed_kmh:
             vehicle_speed_kmh = 0
         else:
-            vehicle_speed_kmh = int(vehicle_speed_kmh * 1.60934)
+            vehicle_speed_kmh = int(vehicle_speed_kmh * 1.60934) # Convert mph to kmh
         log(f"  Speed: {vehicle_speed_kmh}km/h")
     if 'est_heading' in data:
         global vehicle_heading
@@ -65,9 +65,55 @@ def tesla_stream_process_data(data):
         log(f"  Altitude: {vehicle_altitude_m}m")
     if 'range' in data:
         global vehicle_range_km
-        vehicle_range_km = int(data['range'] * 1.60934)
+        vehicle_range_km = int(data['range'] * 1.60934) # Convert miles to km
         log(f"  Range: {vehicle_range_km}km")
     if 'shift_state' in data:
         global vehicle_shift_state
         vehicle_shift_state = data['shift_state']
         log(f"  Shift state: {vehicle_shift_state}")
+
+def tesla_update_force(tesla, vehicle_nr):
+    log("Forced Tesla update...")
+    vehicle = tesla_get_vehicle(tesla, vehicle_nr)
+    try:
+        vehicle.sync_wake_up()
+        drive_state = vehicle['drive_state']
+        global vehicle_last_seen_ts
+        vehicle_last_seen_ts = drive_state['gps_as_of']
+        log(f"  Timestamp: {vehicle_last_seen_ts}")
+
+        global vehicle_charge_percent
+        charge_state = vehicle['charge_state']
+        vehicle_charge_percent = charge_state['battery_level']
+        log(f"  Charge percent: {vehicle_charge_percent}%")
+
+        global vehicle_lat
+        vehicle_lat = drive_state['latitude']
+        log(f"  Latitude: {vehicle_lat}")
+
+        global vehicle_lng
+        vehicle_lng = drive_state['longitude']
+        log(f"  Longitude: {vehicle_lng}")
+
+        global vehicle_speed_kmh
+        vehicle_speed_kmh = drive_state['speed']
+        if not vehicle_speed_kmh:
+            vehicle_speed_kmh = 0
+        else:
+            vehicle_speed_kmh = int(vehicle_speed_kmh * 1.60934) # Convert mph to kmh
+        log(f"  Speed: {vehicle_speed_kmh}km/h")
+
+        global vehicle_heading
+        vehicle_heading = drive_state['heading']
+        log(f"  Heading: {vehicle_heading}")
+
+        global vehicle_range_km
+        vehicle_range_km = int(charge_state['battery_range'] * 1.60934) # Convert miles to km
+        log(f"  Range: {vehicle_range_km}km")
+
+        global vehicle_shift_state
+        vehicle_shift_state = drive_state['shift_state']
+        log(f"  Shift state: {vehicle_shift_state}")
+    except Exception as e:
+        print(e)
+        exit(1)

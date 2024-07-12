@@ -162,6 +162,8 @@ def main(argv):
     msg_queue = multiprocessing.Queue()
     tesla_stream_process_handle_set(multiprocessing.Process(target=tesla_stream_process, args=(tesla, vehicle_nr, msg_queue)).start())
 
+    tesla_update_force(tesla, vehicle_nr)
+
     while True:
         while not msg_queue.empty():
             msg = msg_queue.get()
