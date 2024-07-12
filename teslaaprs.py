@@ -78,11 +78,34 @@ def update(tesla, vehicle_nr, callsign, msg):
                               vehicle_heading, vehicle_altitude_m, msg, state)
 
 def main(argv):
-    email = None
-    callsign = None
-    msg = ""
-    interval_sec = 30
-    vehicle_nr = 0
+    email = os.environ.get('TESLAAPRS_EMAIL')
+    if email:
+        email = email.strip()
+
+    callsign = os.environ.get('TESLAAPRS_CALLSIGN')
+    if callsign:
+        callsign = callsign.strip().upper()
+
+    msg = os.environ.get('TESLAAPRS_MSG')
+    if msg:
+        msg = msg.strip()
+    else:
+        msg = "github.com/nonoo/tesla-aprs"
+
+    if os.environ.get('TESLAAPRS_SILENT'):
+        log_set_silent(True)
+
+    interval_sec = os.environ.get('TESLAAPRS_INTERVAL')
+    if interval_sec:
+        interval_sec = int(interval_sec)
+    else:
+        interval_sec = 30
+
+    vehicle_nr = os.environ.get('TESLAAPRS_VEHICLE_NR')
+    if vehicle_nr:
+        vehicle_nr = int(vehicle_nr)
+    else:
+        vehicle_nr = 0
 
     try:
         opts, _ = getopt.getopt(argv, "e:c:m:si:n:", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr="])
@@ -112,7 +135,10 @@ def main(argv):
 
     tesla = teslapy.Tesla(email)
     if not tesla.authorized:
-        tesla.refresh_token(refresh_token=input('Enter Tesla refresh token (see README for details): '))
+        refresh_token = os.environ.get('TESLAAPRS_REFRESH_TOKEN')
+        if not refresh_token:
+            refresh_token = input('Enter Tesla refresh token (see README for details): ')
+        tesla.refresh_token(refresh_token=refresh_token)
 
     msg_queue = multiprocessing.Queue()
     global tesla_stream_proc

@@ -56,3 +56,16 @@ Example usage:
 ```
 env/bin/python teslaaprs.py -e nonoo@nonoo.hu -c HA2NON-12 -m "LOAD\"*\",8,1 ~ github.com/nonoo/tesla-aprs"
 ```
+
+## Environment variables
+
+You can set the following environment variables to avoid passing them as
+command line arguments:
+
+- `TESLAAPRS_EMAIL`: Tesla account email address
+- `TESLAAPRS_CALLSIGN`: APRS callsign
+- `TESLAAPRS_MSG`: APRS message
+- `TESLAAPRS_SILENT`: Suppress logging
+- `TESLAAPRS_INTERVAL`: APRS message interval in seconds
+- `TESLAAPRS_VEHICLE_NR`: Tesla vehicle number
+- `TESLAAPRS_REFRESH_TOKEN`: Tesla refresh token
