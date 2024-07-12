@@ -1,6 +1,10 @@
 from log import *
 from helper import *
 
+import multiprocessing
+
+tesla_stream_process_handle = None
+
 vehicle_last_seen_ts = None
 vehicle_charge_percent = None
 vehicle_lat = None
@@ -26,9 +30,38 @@ def tesla_get_vehicle(tesla, vehicle_nr):
 
     return vehicles[vehicle_nr]
 
+def tesla_stream_cb(data):
+    global stream_msg_queue
+    stream_msg_queue.put(data)
+
+def tesla_stream_process(tesla, vehicle_nr, msg_queue):
+    global stream_msg_queue
+    stream_msg_queue = msg_queue
+    vehicle = tesla_get_vehicle(tesla, vehicle_nr)
+    while True:
+        log("Tesla update stream connecting...")
+        try:
+            vehicle.stream(tesla_stream_cb) # This call blocks
+        except Exception as e:
+            print(e)
+            stream_msg_queue.put(None)
+            return
+
+def tesla_stream_process_start(tesla, vehicle_nr, msg_queue):
+    global tesla_stream_process_handle
+    tesla_stream_process_handle = multiprocessing.Process(target=tesla_stream_process, args=(tesla, vehicle_nr, msg_queue)).start()
+
+def tesla_stream_process_stop():
+    global tesla_stream_process_handle
+    if tesla_stream_process_handle:
+        tesla_stream_process_handle.terminate()
+        tesla_stream_process_handle.join()
+        tesla_stream_process_handle = None
+        global vehicle_last_seen_ts
+        vehicle_last_seen_ts = None
+
 def tesla_stream_process_data(data):
-    print(data) # TODO: remove, power field?
-    log("Tesla update:")
+    log("Got Tesla update:")
     if 'timestamp' in data:
         global vehicle_last_seen_ts
         vehicle_last_seen_ts = int(data['timestamp'] / 1000) # Convert ms to s

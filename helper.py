@@ -1,23 +1,12 @@
+from tesla import *
+
 import datetime
 from datetime import datetime, timezone
 import sys
 
-tesla_stream_process_handle = None
-
 def exit(code):
-    tesla_stream_process_close()
+    tesla_stream_process_stop()
     sys.exit(code)
-
-def tesla_stream_process_close():
-    global tesla_stream_process_handle
-    if tesla_stream_process_handle:
-        tesla_stream_process_handle.terminate()
-        tesla_stream_process_handle.join()
-        tesla_stream_process_handle = None
-
-def tesla_stream_process_handle_set(h):
-    global tesla_stream_process_handle
-    tesla_stream_process_handle = h
 
 def get_hours_and_mins_from_mins(total_minutes):
     hours = total_minutes // 60

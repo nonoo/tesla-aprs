@@ -11,28 +11,12 @@ import time
 import signal
 import multiprocessing
 import logging
+import time
 
 last_report_ts = None
 
 def sigint_handler(signum, frame):
     exit(0)
-
-def tesla_stream_cb(data):
-    global stream_msg_queue
-    stream_msg_queue.put(data)
-
-def tesla_stream_process(tesla, vehicle_nr, msg_queue):
-    global stream_msg_queue
-    stream_msg_queue = msg_queue
-    vehicle = tesla_get_vehicle(tesla, vehicle_nr)
-    while True:
-        log("Tesla update...")
-        try:
-            vehicle.stream(tesla_stream_cb) # This call blocks
-        except Exception as e:
-            print(e)
-            stream_msg_queue.put(None)
-            return
 
 def update(tesla, vehicle_nr, callsign, msg):
     global last_report_ts
@@ -160,9 +144,9 @@ def main(argv):
         tesla.refresh_token(refresh_token=refresh_token)
 
     msg_queue = multiprocessing.Queue()
-    tesla_stream_process_handle_set(multiprocessing.Process(target=tesla_stream_process, args=(tesla, vehicle_nr, msg_queue)).start())
+    tesla_stream_process_start(tesla, vehicle_nr, msg_queue)
 
-    tesla_update_force(tesla, vehicle_nr)
+    # tesla_update_force(tesla, vehicle_nr)
 
     log(f"Sleeping for {interval_sec} seconds...")
     sec_to_sleep = interval_sec
@@ -185,6 +169,15 @@ def main(argv):
 
             if not msg_queue.empty():
                 break
+
+            vehicle_last_seen_ts, _, _, _, _, _, _, _, _ = tesla_get_data()
+            if vehicle_last_seen_ts:
+                a = int(time.time()) - vehicle_last_seen_ts
+                print(f"{time.time()} - {vehicle_last_seen_ts} {a} > {interval_sec}")
+            if vehicle_last_seen_ts and int(time.time()) - vehicle_last_seen_ts > interval_sec:
+                log("Tesla update stream timeout, restarting...")
+                tesla_stream_process_stop()
+                tesla_stream_process_start(tesla, vehicle_nr, msg_queue)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
