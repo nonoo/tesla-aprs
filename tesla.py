@@ -1,4 +1,5 @@
 from log import *
+from helper import *
 
 import sys
 
@@ -19,11 +20,11 @@ def tesla_get_vehicle(tesla, vehicle_nr):
     vehicles = tesla.vehicle_list()
     if not vehicles:
         print("No registered vehicles")
-        sys.exit(1)
+        exit(1)
 
     if vehicle_nr >= len(vehicles):
         print("Invalid vehicle number")
-        sys.exit(1)
+        exit(1)
 
     return vehicles[vehicle_nr]
 

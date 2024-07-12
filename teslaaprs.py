@@ -6,21 +6,16 @@ from tesla import *
 import teslapy
 import sys
 import getopt
-import sys
 import os
 import time
 import signal
 import multiprocessing
 import logging
 
-tesla_stream_process_handle = None
 last_report_ts = None
 
 def sigint_handler(signum, frame):
-    if tesla_stream_process_handle:
-        tesla_stream_process_handle.terminate()
-        tesla_stream_process_handle.join()
-    sys.exit(0)
+    exit(0)
 
 def tesla_stream_cb(data):
     global stream_msg_queue
@@ -30,9 +25,14 @@ def tesla_stream_process(tesla, vehicle_nr, msg_queue):
     global stream_msg_queue
     stream_msg_queue = msg_queue
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
-    log("Starting Tesla update stream...")
-    vehicle.stream(tesla_stream_cb) # This call blocks
-    sys.exit(1)
+    while True:
+        log("Tesla update...")
+        try:
+            vehicle.stream(tesla_stream_cb) # This call blocks
+        except Exception as e:
+            print(e)
+            stream_msg_queue.put(None)
+            return
 
 def update(tesla, vehicle_nr, callsign, msg):
     global last_report_ts
@@ -51,14 +51,18 @@ def update(tesla, vehicle_nr, callsign, msg):
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     if vehicle.available():
         log("Vehicle awake, querying data...")
-        climate_state = vehicle['climate_state']
-        if climate_state:
-            state += " " + str(climate_state['outside_temp']) + "C"
+        try:
+            climate_state = vehicle['climate_state']
+            if climate_state:
+                state += " " + str(climate_state['outside_temp']) + "C"
 
-        charge_state = vehicle['charge_state']
-        if charge_state:
-            charger_pwr_kw = charge_state['charger_power']
-            charger_rem_mins = charge_state['minutes_to_full_charge']
+            charge_state = vehicle['charge_state']
+            if charge_state:
+                charger_pwr_kw = charge_state['charger_power']
+                charger_rem_mins = charge_state['minutes_to_full_charge']
+        except Exception as e:
+            print(e)
+            exit(1)
 
     if charger_pwr_kw:
         charger_pwr_str = str(charger_pwr_kw) + "kW"
@@ -124,7 +128,7 @@ def main(argv):
         opts, _ = getopt.getopt(argv, "e:c:m:si:n:d", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr=", "debug="])
     except getopt.GetoptError:
         print_usage()
-        sys.exit(1)
+        exit(1)
 
     for opt, arg in opts:
         if opt in ("-e", "--email"):
@@ -144,7 +148,7 @@ def main(argv):
 
     if not email or not callsign:
         print_usage()
-        sys.exit(1)
+        exit(1)
 
     signal.signal(signal.SIGINT, sigint_handler)
 
@@ -156,16 +160,24 @@ def main(argv):
         tesla.refresh_token(refresh_token=refresh_token)
 
     msg_queue = multiprocessing.Queue()
-    global tesla_stream_process_handle
-    tesla_stream_process_handle = multiprocessing.Process(target=tesla_stream_process, args=(tesla, vehicle_nr, msg_queue)).start()
+    tesla_stream_process_handle_set(multiprocessing.Process(target=tesla_stream_process, args=(tesla, vehicle_nr, msg_queue)).start())
 
     while True:
         while not msg_queue.empty():
-            tesla_stream_process_data(msg_queue.get())
+            msg = msg_queue.get()
+            if not msg:
+                print("Tesla update error, exiting...")
+                exit(1)
+            tesla_stream_process_data(msg)
 
         update(tesla, vehicle_nr, callsign, msg)
         log(f"Sleeping for {interval_sec} seconds...")
-        time.sleep(interval_sec)
+        sec = interval_sec
+        while sec > 0:
+            time.sleep(1)
+            sec -= 1
+            if not msg_queue.empty():
+                break
 
 if __name__ == "__main__":
     main(sys.argv[1:])
