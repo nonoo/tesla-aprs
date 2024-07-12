@@ -12,25 +12,26 @@ import time
 import signal
 import multiprocessing
 
-tesla_stream_proc = None
+tesla_stream_process_handle = None
 last_report_ts = None
 
 def sigint_handler(signum, frame):
-    if tesla_stream_proc:
-        tesla_stream_proc.terminate()
-        tesla_stream_proc.join()
+    if tesla_stream_process_handle:
+        tesla_stream_process_handle.terminate()
+        tesla_stream_process_handle.join()
     sys.exit(0)
 
-def print_usage():
-    script_name = os.path.basename(__file__)
-    print("tesla-aprs - Send Tesla vehicle location data to the APRS-IS https://github.com/nonoo/tesla-aprs")
-    print(f"Usage: python {script_name} -e <email> -c <callsign> -m <msg>")
-    print("Options:")
-    print("  -e, --email\t\tEmail address for Tesla account")
-    print("  -c, --callsign\tAPRS callsign")
-    print("  -m, --msg\t\tAPRS message")
-    print("  -s, --silent\t\tSuppress output")
-    print("  -i, --interval\t\tInterval in seconds between updates, default 30")
+def tesla_stream_cb(data):
+    global stream_msg_queue
+    stream_msg_queue.put(data)
+
+def tesla_stream_process(tesla, vehicle_nr, msg_queue):
+    global stream_msg_queue
+    stream_msg_queue = msg_queue
+    vehicle = tesla_get_vehicle(tesla, vehicle_nr)
+    log("Starting Tesla update stream...")
+    vehicle.stream(tesla_stream_cb) # This call blocks
+    sys.exit(1)
 
 def update(tesla, vehicle_nr, callsign, msg):
     global last_report_ts
@@ -76,6 +77,17 @@ def update(tesla, vehicle_nr, callsign, msg):
 
     send_aprs_location_report(callsign, vehicle_last_seen_ts, vehicle_lat, vehicle_lng, vehicle_speed_kmh,
                               vehicle_heading, vehicle_altitude_m, msg, state)
+
+def print_usage():
+    script_name = os.path.basename(__file__)
+    print("tesla-aprs - Send Tesla vehicle location data to the APRS-IS https://github.com/nonoo/tesla-aprs")
+    print(f"Usage: python {script_name} -e <email> -c <callsign> -m <msg>")
+    print("Options:")
+    print("  -e, --email\t\tEmail address for Tesla account")
+    print("  -c, --callsign\tAPRS callsign")
+    print("  -m, --msg\t\tAPRS message")
+    print("  -s, --silent\t\tSuppress output")
+    print("  -i, --interval\t\tInterval in seconds between updates, default 30")
 
 def main(argv):
     email = os.environ.get('TESLAAPRS_EMAIL')
@@ -141,8 +153,8 @@ def main(argv):
         tesla.refresh_token(refresh_token=refresh_token)
 
     msg_queue = multiprocessing.Queue()
-    global tesla_stream_proc
-    tesla_stream_proc = multiprocessing.Process(target=tesla_stream_thread_handler, args=(tesla, vehicle_nr, msg_queue)).start()
+    global tesla_stream_process_handle
+    tesla_stream_process_handle = multiprocessing.Process(target=tesla_stream_process, args=(tesla, vehicle_nr, msg_queue)).start()
 
     while True:
         while not msg_queue.empty():

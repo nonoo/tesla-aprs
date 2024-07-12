@@ -27,18 +27,6 @@ def tesla_get_vehicle(tesla, vehicle_nr):
 
     return vehicles[vehicle_nr]
 
-def tesla_stream_cb(data):
-    global stream_msg_queue
-    stream_msg_queue.put(data)
-
-def tesla_stream_thread_handler(tesla, vehicle_nr, msg_queue):
-    global stream_msg_queue
-    stream_msg_queue = msg_queue
-    vehicle = tesla_get_vehicle(tesla, vehicle_nr)
-    log("Starting Tesla update stream...")
-    vehicle.stream(tesla_stream_cb)
-    sys.exit(1)
-
 def tesla_stream_process_data(data):
     print(data) # TODO: remove, power field?
     log("Tesla update:")
