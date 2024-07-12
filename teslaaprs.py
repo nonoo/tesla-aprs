@@ -1,17 +1,17 @@
 from helper import *
+from aprs import *
+from log import *
 
 import teslapy
 import sys
 import getopt
 import sys
 import os
-import aprslib
 import time
 import signal
 import multiprocessing
 
 tesla_stream_proc = None
-silent = False
 last_report_ts = None
 
 vehicle_last_seen_ts = None
@@ -29,10 +29,6 @@ def sigint_handler(signum, frame):
         tesla_stream_proc.terminate()
         tesla_stream_proc.join()
     sys.exit(0)
-
-def log(*args, **kwargs):
-    if not silent:
-        print(*args, **kwargs)
 
 def tesla_get_vehicle(tesla, vehicle_nr):
     vehicles = tesla.vehicle_list()
@@ -102,39 +98,6 @@ def tesla_stream_process_data(data):
         vehicle_shift_state = data['shift_state']
         log(f"  Shift state: {vehicle_shift_state}")
 
-def send_aprs_location_report(callsign, msg, state):
-    global vehicle_last_seen_ts
-    global vehicle_lat
-    global vehicle_lng
-    global vehicle_speed_kmh
-    global vehicle_heading
-    global vehicle_altitude_m
-
-    callsign_without_ssid = callsign.split("-")[0]
-    aprs_lat = convert_coord_to_aprs(vehicle_lat, True)
-    aprs_lng = convert_coord_to_aprs(vehicle_lng, False)
-    lat_hemisphere = 'N' if vehicle_lat >= 0 else 'S'
-    lng_hemisphere = 'E' if vehicle_lng >= 0 else 'W'
-    aprs_speed = int(vehicle_speed_kmh * 0.539957) # Km/h to knots
-    aprs_course = vehicle_heading
-    day, hours, minutes = convert_unix_timestamp_to_aprs(vehicle_last_seen_ts)
-    altitude_feet = int(vehicle_altitude_m * 3.28084)
-
-    log(f"Sending location report...")
-
-    try:
-        aprs_conn = aprslib.IS(callsign_without_ssid, get_aprs_passcode_for_callsign(callsign_without_ssid))
-        aprs_conn.connect()
-        pkt = f"{callsign}>APTSLA,TCPIP*:@{day}{hours}{minutes}z{aprs_lat}{lat_hemisphere}/{aprs_lng}{lng_hemisphere}>{aprs_course:03d}/{aprs_speed:03d}{msg}/A={altitude_feet:06d}"
-        log(f"  {pkt}")
-        aprs_conn.sendall(pkt)
-        pkt = f"{callsign}>APTSLA,TCPIP*:>{day}{hours}{minutes}z{state}"
-        log(f"  {pkt}")
-        aprs_conn.sendall(pkt)
-    except Exception as e:
-        print(f"Error sending APRS message: {e}")
-        sys.exit(1)
-
 def print_usage():
     script_name = os.path.basename(__file__)
     print("tesla-aprs - Send Tesla vehicle location data to the APRS-IS https://github.com/nonoo/tesla-aprs")
@@ -161,7 +124,7 @@ def update(tesla, vehicle_nr, callsign, msg):
     global vehicle_range_km
     global vehicle_shift_state
 
-    state = f"Batt. {vehicle_charge_percent}% ({vehicle_range_km}km)"
+    state = f"Batt. {vehicle_charge_percent}% {vehicle_range_km}km"
 
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     if vehicle.available():
@@ -191,7 +154,13 @@ def update(tesla, vehicle_nr, callsign, msg):
         log("  Parked")
         state += " (Parked)"
 
-    send_aprs_location_report(callsign, msg, state)
+    global vehicle_lat
+    global vehicle_lng
+    global vehicle_speed_kmh
+    global vehicle_heading
+    global vehicle_altitude_m
+    send_aprs_location_report(callsign, vehicle_last_seen_ts, vehicle_lat, vehicle_lng, vehicle_speed_kmh,
+                              vehicle_heading, vehicle_altitude_m, msg, state)
 
 def main(argv):
     email = None
@@ -214,8 +183,7 @@ def main(argv):
         elif opt in ("-m", "--msg"):
             msg = arg
         elif opt in ("-s", "--silent"):
-            global silent
-            silent = True
+            log_set_silent(True)
         elif opt in ("-i", "--interval"):
             interval_sec = int(arg)
         elif opt in ("-n", "--vehiclenr"):

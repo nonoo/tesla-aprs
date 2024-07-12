@@ -54,5 +54,5 @@ Get the command line arguments using `-h`
 Example usage:
 
 ```
-env/bin/python tesla-aprs.py -e nonoo@nonoo.hu -c HA2NON-12 -m "LOAD\"*\",8,1 ~ github.com/nonoo/tesla-aprs"
+env/bin/python teslaaprs.py -e nonoo@nonoo.hu -c HA2NON-12 -m "LOAD\"*\",8,1 ~ github.com/nonoo/tesla-aprs"
 ```
