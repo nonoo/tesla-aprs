@@ -3,7 +3,6 @@ from aprs import *
 from log import *
 from tesla import *
 
-import teslapy
 import sys
 import getopt
 import os
@@ -83,6 +82,9 @@ def print_usage():
     print("  -m, --msg\t\tAPRS message")
     print("  -s, --silent\t\tSuppress output")
     print("  -i, --interval\t\tInterval in seconds between updates, default 30")
+    print("  -n, --vehiclenr\tVehicle number, default 0")
+    print("  -f, --forceupdate\tForce update on start")
+    print("  -d, --debug\t\tEnable debug output")
 
 def main(argv):
     email = os.environ.get('TESLAAPRS_EMAIL')
@@ -114,8 +116,10 @@ def main(argv):
     else:
         vehicle_nr = 0
 
+    force_update = False
+
     try:
-        opts, _ = getopt.getopt(argv, "e:c:m:si:n:d", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr=", "debug="])
+        opts, _ = getopt.getopt(argv, "e:c:m:si:n:d", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr=", "forceupdate=", "debug="])
     except getopt.GetoptError:
         print_usage()
         exit(1)
@@ -133,6 +137,8 @@ def main(argv):
             interval_sec = int(arg)
         elif opt in ("-n", "--vehiclenr"):
             vehicle_nr = int(arg)
+        elif opt in ("-f", "--forceupdate"):
+            force_update = True
         elif opt in ("-d", "--debug"):
             logging.basicConfig(level=logging.DEBUG)
 
@@ -147,7 +153,8 @@ def main(argv):
     msg_queue = multiprocessing.Queue()
     tesla_stream_process_start(email, vehicle_nr, msg_queue)
 
-    # tesla_update_force(tesla, vehicle_nr)
+    if force_update:
+        tesla_update_force(tesla, vehicle_nr)
 
     log(f"Sleeping for {interval_sec} seconds...")
     sec_to_sleep = interval_sec
