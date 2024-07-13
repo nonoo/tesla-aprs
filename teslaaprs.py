@@ -119,7 +119,7 @@ def main(argv):
     force_update = False
 
     try:
-        opts, _ = getopt.getopt(argv, "e:c:m:si:n:d", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr=", "forceupdate=", "debug="])
+        opts, _ = getopt.getopt(argv, "e:c:m:si:n:df", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr=", "forceupdate=", "debug="])
     except getopt.GetoptError:
         print_usage()
         exit(1)
