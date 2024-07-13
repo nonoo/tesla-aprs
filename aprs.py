@@ -28,5 +28,5 @@ def send_aprs_location_report(callsign, ts, lat, lng, speed_kmh, heading, altitu
         log(f"  {pkt}")
         aprs_conn.sendall(pkt)
     except Exception as e:
-        print(f"Error sending APRS message: {e}")
-        exit(1)
+        log(f"Error sending APRS message: {e}")
+        pass
