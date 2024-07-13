@@ -68,7 +68,7 @@ def tesla_stream_process(email, vehicle_nr, msg_queue):
         try:
             vehicle.stream(tesla_stream_cb) # This call blocks
         except Exception as e:
-            print(e)
+            log(e)
             pass
 
         retry_interval_sec = 10
@@ -145,6 +145,7 @@ def tesla_update_force(tesla, vehicle_nr):
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     try:
         vehicle.sync_wake_up()
+
         drive_state = vehicle['drive_state']
         global vehicle_last_seen_ts
         vehicle_last_seen_ts = drive_state['gps_as_of']

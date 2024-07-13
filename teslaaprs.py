@@ -48,7 +48,7 @@ def update(tesla, vehicle_nr, callsign, msg):
                 charger_pwr_kw = charge_state['charger_power']
                 charger_rem_mins = charge_state['minutes_to_full_charge']
         except Exception as e:
-            print("Error querying vehicle data: " + str(e))
+            log("Error querying vehicle data: " + str(e))
             pass
 
     if charger_pwr_kw:
@@ -154,7 +154,7 @@ def main(argv):
         while not msg_queue.empty():
             msg_from_queue = msg_queue.get()
             if not msg_from_queue:
-                print("Tesla update error, exiting...")
+                print("Tesla update stream error, exiting")
                 exit(1)
             tesla_stream_process_data(msg_from_queue)
             last_update_at = int(time.time())
