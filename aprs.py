@@ -11,14 +11,14 @@ def send_aprs_location_report(callsign, ts, lat, lng, speed_kmh, heading, altitu
     lng_hemisphere = 'E' if lng >= 0 else 'W'
     aprs_speed = int(speed_kmh * 0.539957) # Km/h to knots
     aprs_course = heading
-    day, hours, minutes = convert_unix_timestamp_to_aprs(ts)
+    day, hours, minutes, seconds = convert_unix_timestamp_to_aprs(ts)
 
     log(f"Sending location report...")
 
     try:
         aprs_conn = aprslib.IS(callsign_without_ssid, get_aprs_passcode_for_callsign(callsign_without_ssid))
         aprs_conn.connect()
-        pkt = f"{callsign}>APTSLA,TCPIP*:@{day}{hours}{minutes}z{aprs_lat}{lat_hemisphere}/{aprs_lng}{lng_hemisphere}>{aprs_course:03d}/{aprs_speed:03d}{msg}"
+        pkt = f"{callsign}>APTSLA,TCPIP*:@{hours}{minutes}{seconds}h{aprs_lat}{lat_hemisphere}/{aprs_lng}{lng_hemisphere}>{aprs_course:03d}/{aprs_speed:03d}{msg}"
         if altitude_m != None:
             altitude_feet = int(altitude_m * 3.28084)
             pkt += f"/A={altitude_feet:06d}"

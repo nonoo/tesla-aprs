@@ -106,7 +106,7 @@ def main(argv):
     if interval_sec:
         interval_sec = int(interval_sec)
     else:
-        interval_sec = 60
+        interval_sec = 30
 
     vehicle_nr = os.environ.get('TESLAAPRS_VEHICLE_NR')
     if vehicle_nr:

@@ -40,7 +40,8 @@ def convert_unix_timestamp_to_aprs(utc_timestamp):
     day = str(dt.day).zfill(2)
     hours = str(dt.hour).zfill(2)
     minutes = str(dt.minute).zfill(2)
-    return day, hours, minutes
+    seconds = str(dt.second).zfill(2)
+    return day, hours, minutes, seconds
 
 def format_float_str(str):
     if '.' in str:
