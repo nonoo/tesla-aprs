@@ -47,7 +47,7 @@ def tesla_stream_cb(data):
     stream_msg_queue.put(data)
 
 def tesla_stream_process(email, vehicle_nr, msg_queue):
-    log("TeslaUpdateStream: Started")
+    log("Started")
 
     global stream_msg_queue
     stream_msg_queue = msg_queue
@@ -56,14 +56,14 @@ def tesla_stream_process(email, vehicle_nr, msg_queue):
     if not tesla.authorized:
         refresh_token = os.environ.get('TESLAAPRS_REFRESH_TOKEN')
         if not refresh_token:
-            print("TeslaUpdateStream: No refresh token provided")
+            print("No refresh token provided")
             stream_msg_queue.put(None)
             return
         tesla.refresh_token(refresh_token=refresh_token)
 
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     while True:
-        log("TeslaUpdateStream: Connecting...")
+        log("Connecting...")
         last_connect_ts = int(time.time())
         try:
             vehicle.stream(tesla_stream_cb) # This call blocks
@@ -74,14 +74,14 @@ def tesla_stream_process(email, vehicle_nr, msg_queue):
         retry_interval_sec = 10
         remaining_sec_until_retry = retry_interval_sec - (int(time.time()) - last_connect_ts)
         if remaining_sec_until_retry > 0:
-            log(f"TeslaUpdateStream: Disconnected, retrying in {remaining_sec_until_retry} seconds...")
+            log(f"Disconnected, retrying in {remaining_sec_until_retry} seconds...")
             time.sleep(remaining_sec_until_retry)
 
 def tesla_stream_process_start(email, vehicle_nr, msg_queue):
-    log("TeslaUpdateStream: Starting")
+    log("Starting")
     global tesla_stream_process_handle
     if tesla_stream_process_handle:
-        log("TeslaUpdateStream: Already running")
+        log("Already running")
         return
     tesla_stream_process_handle = multiprocessing.Process(target=tesla_stream_process, args=(email, vehicle_nr, msg_queue))
     tesla_stream_process_handle.daemon = True
@@ -90,7 +90,7 @@ def tesla_stream_process_start(email, vehicle_nr, msg_queue):
 def tesla_stream_process_stop():
     global tesla_stream_process_handle
     if tesla_stream_process_handle:
-        log("TeslaUpdateStream: Stopping")
+        log("Stopping")
         tesla_stream_process_handle.terminate()
         tesla_stream_process_handle.join()
         tesla_stream_process_handle = None
