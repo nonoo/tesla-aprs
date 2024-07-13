@@ -47,6 +47,8 @@ def tesla_stream_cb(data):
     stream_msg_queue.put(data)
 
 def tesla_stream_process(email, vehicle_nr, msg_queue):
+    log("TeslaUpdateStream: Started")
+
     global stream_msg_queue
     stream_msg_queue = msg_queue
 
@@ -76,12 +78,19 @@ def tesla_stream_process(email, vehicle_nr, msg_queue):
             time.sleep(remaining_sec_until_retry)
 
 def tesla_stream_process_start(email, vehicle_nr, msg_queue):
+    log("TeslaUpdateStream: Starting")
     global tesla_stream_process_handle
-    tesla_stream_process_handle = multiprocessing.Process(target=tesla_stream_process, args=(email, vehicle_nr, msg_queue)).start()
+    if tesla_stream_process_handle:
+        log("TeslaUpdateStream: Already running")
+        return
+    tesla_stream_process_handle = multiprocessing.Process(target=tesla_stream_process, args=(email, vehicle_nr, msg_queue))
+    tesla_stream_process_handle.daemon = True
+    tesla_stream_process_handle.start()
 
 def tesla_stream_process_stop():
     global tesla_stream_process_handle
     if tesla_stream_process_handle:
+        log("TeslaUpdateStream: Stopping")
         tesla_stream_process_handle.terminate()
         tesla_stream_process_handle.join()
         tesla_stream_process_handle = None
