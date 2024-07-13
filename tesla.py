@@ -94,8 +94,6 @@ def tesla_stream_process_stop():
         tesla_stream_process_handle.terminate()
         tesla_stream_process_handle.join()
         tesla_stream_process_handle = None
-        global vehicle_last_seen_ts
-        vehicle_last_seen_ts = None
 
 def tesla_stream_process_data(data):
     log("Got Tesla update:")
