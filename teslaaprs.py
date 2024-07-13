@@ -40,8 +40,9 @@ def update(tesla, vehicle_nr, callsign, msg):
         try:
             climate_state = vehicle['climate_state']
             if climate_state:
-                log(f"  Outside temp: {climate_state['outside_temp']}C")
-                state += " " + str(climate_state['outside_temp']) + "C"
+                outside_temp_str = format_float_str(str(climate_state['outside_temp']))
+                log(f"  Outside temp: {outside_temp_str}C")
+                state += " " + outside_temp_str + "C"
 
             charge_state = vehicle['charge_state']
             if charge_state:

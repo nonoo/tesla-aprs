@@ -41,3 +41,10 @@ def convert_unix_timestamp_to_aprs(utc_timestamp):
     hours = str(dt.hour).zfill(2)
     minutes = str(dt.minute).zfill(2)
     return day, hours, minutes
+
+def format_float_str(str):
+    if '.' in str:
+        whole_part, decimal_part = str.split('.')
+        if decimal_part == '0' * len(decimal_part):
+            return whole_part
+    return str
