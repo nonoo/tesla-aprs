@@ -59,8 +59,10 @@ def update(tesla, vehicle_nr, callsign, msg):
         if charger_rem_mins:
             hours, mins = get_hours_and_mins_from_mins(charger_rem_mins)
             charger_rem_str = f"{mins}m"
-            if hours > 0:
+            if hours > 0 and mins > 0:
                 charger_rem_str = f"{hours}h{mins}m"
+            elif hours > 0:
+                charger_rem_str = f"{hours}h"
             log(f"  Charge rem.: {charger_rem_str}")
             state += f"/{charger_rem_str}"
 
