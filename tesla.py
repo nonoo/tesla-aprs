@@ -139,10 +139,14 @@ def tesla_stream_process_data(data):
         log(f"  Shift state: {vehicle_shift_state}")
 
 def tesla_update_force(tesla, vehicle_nr):
-    log("Forced Tesla update...")
+    log("Forced Tesla update, waking up vehicle...")
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     try:
         vehicle.sync_wake_up()
+
+        log("Forced Tesla update results:")
+        vehicle_state = vehicle['vehicle_state']
+        log(f"  Vehicle name: {vehicle_state['vehicle_name']}")
 
         drive_state = vehicle['drive_state']
         global vehicle_last_seen_ts
