@@ -7,6 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD [ "python", "teslaaprs.py" ]
+CMD [ "python", "-u", "teslaaprs.py" ]
 
 ENV TESLAAPRS_EMAIL= TESLAAPRS_CALLSIGN= TESLAAPRS_MSG= TESLAAPRS_SILENT= TESLAAPRS_INTERVAL= TESLAAPRS_VEHICLE_NR= TESLAAPRS_REFRESH_TOKEN=
