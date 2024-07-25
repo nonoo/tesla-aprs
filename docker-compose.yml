@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      pull: true
+    image: makos/tesla-aprs
+    environment:
+      - TESLAAPRS_EMAIL=
+      - TESLAAPRS_CALLSIGN=
+      - TESLAAPRS_MSG=
+      - TESLAAPRS_SILENT=
+      - TESLAAPRS_INTERVAL=
+      - TESLAAPRS_VEHICLE_NR=
+      - TESLAAPRS_REFRESH_TOKEN=
