@@ -71,7 +71,7 @@ def update(tesla, vehicle_nr, callsign, msg):
         log("  Parked")
         state += " (Parked)"
 
-    send_aprs_location_report(callsign, vehicle_last_seen_ts, vehicle_lat, vehicle_lng, vehicle_speed_kmh,
+    aprs_send_location_report(callsign, vehicle_last_seen_ts, vehicle_lat, vehicle_lng, vehicle_speed_kmh,
                               vehicle_heading, vehicle_altitude_m, msg, state)
 
 def print_usage():
