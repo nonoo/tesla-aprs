@@ -83,7 +83,7 @@ def print_usage():
     print("  -c, --callsign\tAPRS callsign")
     print("  -m, --msg\t\tAPRS message")
     print("  -s, --silent\t\tSuppress output")
-    print("  -i, --interval\t\tInterval in seconds between updates, default 30")
+    print("  -i, --interval\t\tInterval in seconds between updates, default 15")
     print("  -n, --vehiclenr\tVehicle number, default 0")
     print("  -f, --forceupdate\tForce update on start")
     print("  -d, --debug\t\tEnable debug output")
@@ -110,7 +110,7 @@ def main(argv):
     if interval_sec:
         interval_sec = int(interval_sec)
     else:
-        interval_sec = 30
+        interval_sec = 15
 
     vehicle_nr = os.environ.get('TESLAAPRS_VEHICLE_NR')
     if vehicle_nr:
