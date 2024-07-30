@@ -5,7 +5,6 @@ from tesla import *
 
 import time
 import multiprocessing
-import time
 
 last_report_ts = None
 

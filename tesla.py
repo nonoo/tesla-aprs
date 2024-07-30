@@ -1,5 +1,4 @@
 from log import *
-from helper import *
 
 import multiprocessing
 import teslapy
