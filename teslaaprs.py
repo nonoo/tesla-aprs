@@ -61,7 +61,7 @@ def update(tesla, vehicle_nr, callsign, msg):
             state += f"/{charger_rem_str}"
 
         state += ")"
-    elif not vehicle_shift_state:
+    elif not vehicle_shift_state or vehicle_shift_state == "P":
         log("  Parked")
         state += " (Parked)"
 
