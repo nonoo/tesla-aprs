@@ -178,6 +178,9 @@ def main(argv):
         while sec_to_sleep > 0:
             time.sleep(1)
             sec_to_sleep -= 1
+
+            tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec)
+
             if sec_to_sleep == 0:
                 update(tesla, vehicle_nr, callsign, msg)
                 log(f"Sleeping for {interval_sec} seconds...")

@@ -10,6 +10,7 @@ tesla_mutex = multiprocessing.Lock()
 
 tesla_stream_update_timeout_sec = 30
 tesla_stream_process_handle = None
+tesla_last_forced_update_try_at = None
 
 tesla_vehicle_last_seen_ts = None
 tesla_vehicle_charge_percent = None
@@ -204,3 +205,25 @@ def tesla_update_force(tesla, vehicle_nr, wake_up):
         pass
 
     return result
+
+def tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec):
+    with tesla_mutex:
+        min_update_interval_sec = interval_sec
+        if not tesla_vehicle_shift_state:
+            min_update_interval_sec = max(min_update_interval_sec, 60)
+
+        global tesla_last_forced_update_try_at
+        if tesla_last_forced_update_try_at and int(time.time()) - tesla_last_forced_update_try_at < min_update_interval_sec:
+            return
+        tesla_last_forced_update_try_at = int(time.time())
+
+        # Not doing a forced update if we got a stream update recently.
+        if tesla_vehicle_last_seen_ts and int(time.time()) - tesla_vehicle_last_seen_ts < interval_sec:
+            return
+
+    vehicle = tesla_get_vehicle(tesla, vehicle_nr)
+    if vehicle.available(max_age=0):
+        log(f"Vehicle awake, no data received for {min_update_interval_sec} seconds, forcing update")
+        tesla_update_force(tesla, vehicle_nr, False)
+    else:
+        log("Vehicle sleeping")
