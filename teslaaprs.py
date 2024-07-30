@@ -156,7 +156,8 @@ def main(argv):
     tesla_stream_process_start(email, vehicle_nr, msg_queue)
 
     if force_update:
-        tesla_update_force(tesla, vehicle_nr)
+        if not tesla_update_force(tesla, vehicle_nr, True):
+            exit(1)
 
     log(f"Sleeping for {interval_sec} seconds...")
     sec_to_sleep = interval_sec
