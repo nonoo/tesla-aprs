@@ -163,7 +163,7 @@ def tesla_update_force(tesla, vehicle_nr, wake_up):
 
             drive_state = vehicle['drive_state']
             global tesla_vehicle_last_seen_ts
-            tesla_vehicle_last_seen_ts = (drive_state['gps_as_of'] / 1000) # Convert ms to s
+            tesla_vehicle_last_seen_ts = drive_state['gps_as_of']
             log(f"  Timestamp: {tesla_vehicle_last_seen_ts}")
 
             global tesla_vehicle_charge_percent
