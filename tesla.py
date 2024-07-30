@@ -144,15 +144,11 @@ def tesla_stream_process_data(data):
             tesla_vehicle_shift_state = data['shift_state']
             log(f"  Shift state: {tesla_vehicle_shift_state}")
 
-def tesla_update_force(tesla, vehicle_nr, wake_up):
+def tesla_update_force(tesla, vehicle_nr):
     result = True
     log("Forced Tesla update...")
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     try:
-        if wake_up:
-            log("  Waking up vehicle...")
-            vehicle.sync_wake_up()
-
         with tesla_mutex:
             log("Forced Tesla update results:")
             vehicle_state = vehicle['vehicle_state']
@@ -223,6 +219,11 @@ def tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec):
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     if vehicle.available(max_age=0):
         log(f"Vehicle awake, no data received for {min_update_interval_sec} seconds, forcing update")
-        tesla_update_force(tesla, vehicle_nr, False)
+        tesla_update_force(tesla, vehicle_nr)
     else:
         log("Vehicle sleeping")
+
+def tesla_wakeup(tesla, vehicle_nr):
+    log("Waking up vehicle...")
+    vehicle = tesla_get_vehicle(tesla, vehicle_nr)
+    vehicle.sync_wake_up()

@@ -92,7 +92,10 @@ def process(email, vehicle_nr, wakeup_on_start, interval_sec, callsign, msg):
     tesla_stream_process_start(email, vehicle_nr, msg_queue)
 
     if wakeup_on_start:
-        if not tesla_update_force(tesla, vehicle_nr, True):
+        try:
+            tesla_wakeup(tesla, vehicle_nr)
+        except Exception as e:
+            print(f"Wakeup failed: {e}")
             exit(1)
 
     log(f"Sleeping for {interval_sec} seconds...")
