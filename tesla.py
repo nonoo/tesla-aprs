@@ -209,7 +209,7 @@ def tesla_update_force(tesla, vehicle_nr, wake_up):
 def tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec):
     with tesla_mutex:
         min_update_interval_sec = interval_sec
-        if not tesla_vehicle_shift_state:
+        if not tesla_vehicle_shift_state: # Vehicle parked? Update less frequently to let it sleep.
             min_update_interval_sec = max(min_update_interval_sec, 60)
 
         global tesla_last_forced_update_try_at
