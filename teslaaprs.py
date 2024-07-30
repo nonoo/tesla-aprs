@@ -35,6 +35,9 @@ def update(tesla, vehicle_nr, callsign, msg):
 
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     if vehicle.available():
+        if vehicle['mobile_access_disabled']:
+            log("WARNING: Mobile access disabled")
+
         log("Vehicle awake, querying data...")
         try:
             climate_state = vehicle['climate_state']

@@ -158,10 +158,8 @@ def tesla_update_force(tesla, vehicle_nr, wake_up):
             vehicle_state = vehicle['vehicle_state']
             log(f"  Vehicle name: {vehicle_state['vehicle_name']}")
 
-            if vehicle.mobile_enabled():
-                log("  Mobile access: enabled")
-            else:
-                log("  Mobile access: disabled")
+            if vehicle['mobile_access_disabled']:
+                log("WARNING: Mobile access disabled")
 
             drive_state = vehicle['drive_state']
             global tesla_vehicle_last_seen_ts
