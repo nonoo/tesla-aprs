@@ -30,11 +30,6 @@ On Windows:
 pip install -r requirements.txt
 ```
 
-## Running
-
-You don't need to activate the virtual environment to run the script.
-Use `env/bin/python` instead of the system Python binary.
-
 ## Tesla refresh token
 
 The script asks for a Tesla refresh token when run for the first time.
@@ -49,14 +44,17 @@ enter the refresh token every time the script runs. Make sure the current
 working directory is set to the script's directory, so `cache.json` can be
 found by the script.
 
-## Example
+## Running
+
+You don't need to activate the virtual environment to run the script.
+Use `env/bin/python` instead of the system Python binary.
 
 Get the command line arguments using `-h`
 
 Example usage:
 
 ```
-env/bin/python teslaaprs.py -e nonoo@nonoo.hu -c HA2NON-12 -m "LOAD\"*\",8,1 ~ github.com/nonoo/tesla-aprs"
+env/bin/python main.py -e nonoo@nonoo.hu -c HA2NON-12 -m "LOAD\"*\",8,1 ~ github.com/nonoo/tesla-aprs"
 ```
 
 ## Environment variables
