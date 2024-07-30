@@ -8,6 +8,7 @@ import time
 
 mutex = multiprocessing.Lock()
 
+tesla_stream_update_timeout_sec = 30
 tesla_stream_process_handle = None
 
 vehicle_last_seen_ts = None

@@ -183,7 +183,7 @@ def main(argv):
             if not msg_queue.empty():
                 break
 
-            if int(time.time()) - last_update_at > 30:
+            if int(time.time()) - last_update_at > tesla_stream_update_timeout_sec:
                 log("Tesla update stream timeout, restarting...")
                 tesla_stream_process_stop()
                 tesla_stream_process_start(email, vehicle_nr, msg_queue)
