@@ -24,7 +24,7 @@ def update(tesla, vehicle_nr, callsign, msg):
 
     if vehicle_last_seen_ts == last_report_ts:
         if vehicle_last_seen_ts:
-            log("Last update same as last report, skipping")
+            log("Last update timestamp same as last report, skipping")
         return
 
     last_report_ts = vehicle_last_seen_ts
