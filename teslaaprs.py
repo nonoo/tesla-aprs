@@ -118,10 +118,10 @@ def main(argv):
     else:
         vehicle_nr = 0
 
-    force_update = False
+    wakeup_on_start = False
 
     try:
-        opts, _ = getopt.getopt(argv, "e:c:m:si:n:df", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr=", "forceupdate=", "debug="])
+        opts, _ = getopt.getopt(argv, "e:c:m:si:n:dw", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr=", "wakeup=", "debug="])
     except getopt.GetoptError:
         print_usage()
         exit(1)
@@ -139,8 +139,8 @@ def main(argv):
             interval_sec = int(arg)
         elif opt in ("-n", "--vehiclenr"):
             vehicle_nr = int(arg)
-        elif opt in ("-f", "--forceupdate"):
-            force_update = True
+        elif opt in ("-w", "--wakeup"):
+            wakeup_on_start = True
         elif opt in ("-d", "--debug"):
             logging.basicConfig(level=logging.DEBUG)
 
@@ -155,7 +155,7 @@ def main(argv):
     msg_queue = multiprocessing.Queue()
     tesla_stream_process_start(email, vehicle_nr, msg_queue)
 
-    if force_update:
+    if wakeup_on_start:
         if not tesla_update_force(tesla, vehicle_nr, True):
             exit(1)
 
