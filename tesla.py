@@ -213,7 +213,7 @@ def tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec):
         tesla_last_forced_update_try_at = int(time.time())
 
         # Not doing a forced update if we got a stream update recently.
-        if tesla_vehicle_last_seen_ts and int(time.time()) - tesla_vehicle_last_seen_ts < interval_sec:
+        if tesla_vehicle_last_seen_ts and int(time.time()) - tesla_vehicle_last_seen_ts < min_update_interval_sec:
             return
 
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
