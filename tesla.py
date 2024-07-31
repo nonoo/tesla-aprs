@@ -52,7 +52,7 @@ def tesla_stream_cb(data):
     stream_msg_queue.put(data)
 
 def tesla_stream_process(email, vehicle_nr, msg_queue):
-    log("Started")
+    log("Stream process started")
 
     global stream_msg_queue
     stream_msg_queue = msg_queue
@@ -68,25 +68,25 @@ def tesla_stream_process(email, vehicle_nr, msg_queue):
 
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     while True:
-        log("Connecting...")
+        log("Stream connecting...")
         last_connect_ts = int(time.time())
         try:
             vehicle.stream(tesla_stream_cb) # This call blocks
         except Exception as e:
-            log(e)
+            log(f"Stream error: {e}")
             pass
 
         retry_interval_sec = 10
         remaining_sec_until_retry = retry_interval_sec - (int(time.time()) - last_connect_ts)
         if remaining_sec_until_retry > 0:
-            log(f"Disconnected, retrying in {remaining_sec_until_retry} seconds...")
+            log(f"Stream disconnected, retrying in {remaining_sec_until_retry} seconds...")
             time.sleep(remaining_sec_until_retry)
 
 def tesla_stream_process_start(email, vehicle_nr, msg_queue):
-    log("Starting")
+    log("Stream process starting")
     global tesla_stream_process_handle
     if tesla_stream_process_handle:
-        log("Already running")
+        log("Stream process already running")
         return
     tesla_stream_process_handle = multiprocessing.Process(target=tesla_stream_process, args=(email, vehicle_nr, msg_queue))
     tesla_stream_process_handle.daemon = True
@@ -95,14 +95,14 @@ def tesla_stream_process_start(email, vehicle_nr, msg_queue):
 def tesla_stream_process_stop():
     global tesla_stream_process_handle
     if tesla_stream_process_handle:
-        log("Stopping")
+        log("Stream process stopping")
         tesla_stream_process_handle.terminate()
         tesla_stream_process_handle.join()
         tesla_stream_process_handle = None
 
 def tesla_stream_process_data(data):
     with tesla_mutex:
-        log("Got Tesla update:")
+        log("Stream update received:")
         if 'timestamp' in data:
             global tesla_vehicle_last_seen_ts
             tesla_vehicle_last_seen_ts = int(data['timestamp'] / 1000) # Convert ms to s
@@ -146,11 +146,11 @@ def tesla_stream_process_data(data):
 
 def tesla_update_force(tesla, vehicle_nr):
     result = True
-    log("Forced Tesla update...")
+    log("Forced update...")
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     try:
         with tesla_mutex:
-            log("Forced Tesla update results:")
+            log("Forced update results:")
             vehicle_state = vehicle['vehicle_state']
             log(f"  Vehicle name: {vehicle_state['vehicle_name']}")
 
@@ -195,7 +195,7 @@ def tesla_update_force(tesla, vehicle_nr):
             tesla_vehicle_shift_state = drive_state['shift_state']
             log(f"  Shift state: {tesla_vehicle_shift_state}")
     except Exception as e:
-        log(f"Forced Tesla update failed: {e}")
+        log(f"Forced update failed: {e}")
         result = False
         pass
 
