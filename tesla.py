@@ -11,8 +11,6 @@ tesla_stream_update_timeout_sec = 30
 tesla_stream_process_handle = None
 tesla_last_forced_update_try_at = None
 
-tesla_vehicles = None
-
 tesla_vehicle_last_seen_ts = None
 tesla_vehicle_charge_percent = None
 tesla_vehicle_lat = None
@@ -38,18 +36,16 @@ def tesla_init(email):
     return tesla
 
 def tesla_get_vehicle(tesla, vehicle_nr):
-    global tesla_vehicles
-    if not tesla_vehicles:
-        tesla_vehicles = tesla.vehicle_list()
-        if not tesla_vehicles:
-            print("No registered vehicles")
-            exit(1)
+    vehicles = tesla.vehicle_list()
+    if not vehicles:
+        print("No registered vehicles")
+        exit(1)
 
-    if vehicle_nr >= len(tesla_vehicles):
+    if vehicle_nr >= len(vehicles):
         print("Invalid vehicle number")
         exit(1)
 
-    return tesla_vehicles[vehicle_nr]
+    return vehicles[vehicle_nr]
 
 def tesla_stream_cb(data):
     global stream_msg_queue
