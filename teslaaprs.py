@@ -10,7 +10,7 @@ last_report_ts = None
 
 def update(tesla, vehicle_nr, callsign, msg):
     vehicle_last_seen_ts, vehicle_charge_percent, vehicle_lat, vehicle_lng, vehicle_speed_kmh, vehicle_heading, \
-        vehicle_altitude_m, vehicle_range_km, vehicle_shift_state = tesla_get_data()
+        vehicle_altitude_m, vehicle_range_km, vehicle_shift_state, outside_temp_str, charger_pwr_kw, charger_rem_str = tesla_get_data()
 
     global last_report_ts
     if vehicle_last_seen_ts == last_report_ts:
@@ -22,42 +22,14 @@ def update(tesla, vehicle_nr, callsign, msg):
 
     state = f"Batt. {vehicle_charge_percent}% {vehicle_range_km}km"
 
-    charger_pwr_kw = None
-
-    vehicle = tesla_get_vehicle(tesla, vehicle_nr)
-    if vehicle.available():
-        if vehicle['mobile_access_disabled']:
-            log("WARNING: Mobile access disabled")
-
-        log("Vehicle awake, querying data...")
-        try:
-            climate_state = vehicle['climate_state']
-            if climate_state:
-                outside_temp_str = format_float_str(str(climate_state['outside_temp']))
-                log(f"  Outside temp: {outside_temp_str}C")
-                state += " " + outside_temp_str + "C"
-
-            charge_state = vehicle['charge_state']
-            if charge_state:
-                charger_pwr_kw = charge_state['charger_power']
-                charger_rem_mins = charge_state['minutes_to_full_charge']
-        except Exception as e:
-            log("Error querying vehicle data: " + str(e))
-            pass
+    if outside_temp_str:
+        state += " " + outside_temp_str + "C"
 
     if charger_pwr_kw:
         charger_pwr_str = str(charger_pwr_kw) + "kW"
-        log(f"  Charger pwr: {charger_pwr_str}")
         state += f" (Chg {charger_pwr_str}"
 
-        if charger_rem_mins:
-            hours, mins = get_hours_and_mins_from_mins(charger_rem_mins)
-            charger_rem_str = f"{mins}m"
-            if hours > 0 and mins > 0:
-                charger_rem_str = f"{hours}h{mins}m"
-            elif hours > 0:
-                charger_rem_str = f"{hours}h"
-            log(f"  Charge rem.: {charger_rem_str}")
+        if charger_rem_str:
             state += f"/{charger_rem_str}"
 
         state += ")"

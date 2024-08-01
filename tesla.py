@@ -1,5 +1,7 @@
 from log import *
 
+import helper
+
 import multiprocessing
 import teslapy
 import os
@@ -21,10 +23,16 @@ tesla_vehicle_altitude_m = None
 tesla_vehicle_range_km = None
 tesla_vehicle_shift_state = None
 
+tesla_vehicle_additional_ts = None
+tesla_vehicle_additional_outside_temp_str = None
+tesla_vehicle_additional_charger_pwr_kw = None
+tesla_vehicle_additional_charger_rem_str = None
+
 def tesla_get_data():
     with tesla_mutex:
 	    return tesla_vehicle_last_seen_ts, tesla_vehicle_charge_percent, tesla_vehicle_lat, tesla_vehicle_lng, tesla_vehicle_speed_kmh, \
-            tesla_vehicle_heading, tesla_vehicle_altitude_m, tesla_vehicle_range_km, tesla_vehicle_shift_state
+            tesla_vehicle_heading, tesla_vehicle_altitude_m, tesla_vehicle_range_km, tesla_vehicle_shift_state, tesla_vehicle_additional_outside_temp_str, \
+            tesla_vehicle_additional_charger_pwr_kw, tesla_vehicle_additional_charger_rem_str
 
 def tesla_init(email):
     tesla = teslapy.Tesla(email)
@@ -144,10 +152,9 @@ def tesla_stream_process_data(data):
             tesla_vehicle_shift_state = data['shift_state']
             log(f"  Shift state: {tesla_vehicle_shift_state}")
 
-def tesla_update_force(tesla, vehicle_nr):
+def tesla_update_force(vehicle):
     result = True
     log("Forced update...")
-    vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     try:
         with tesla_mutex:
             log("Forced update results:")
@@ -201,7 +208,46 @@ def tesla_update_force(tesla, vehicle_nr):
 
     return result
 
-def tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec):
+def tesla_update_force_additional(vehicle):
+    log("Forced additional data update...")
+    try:
+        with tesla_mutex:
+            global tesla_vehicle_additional_ts
+            tesla_vehicle_additional_ts = int(time.time())
+
+            climate_state = vehicle['climate_state']
+            if climate_state:
+                global tesla_vehicle_additional_outside_temp_str
+                tesla_vehicle_additional_outside_temp_str = helper.format_float_str(str(climate_state['outside_temp']))
+                log(f"  Outside temp: {tesla_vehicle_additional_outside_temp_str}C")
+            else:
+                tesla_vehicle_additional_outside_temp_str = None
+                log("  Outside temp: N/A")
+
+            charge_state = vehicle['charge_state']
+            if charge_state:
+                global tesla_vehicle_additional_charger_pwr_kw
+                tesla_vehicle_additional_charger_pwr_kw = charge_state['charger_power']
+                charger_pwr_str = str(tesla_vehicle_additional_charger_pwr_kw) + "kW"
+                log(f"  Charger pwr: {charger_pwr_str}")
+
+                global tesla_vehicle_additional_charger_rem_str
+                hours, mins = helper.get_hours_and_mins_from_mins(charge_state['minutes_to_full_charge'])
+                tesla_vehicle_additional_charger_rem_str = f"{mins}m"
+                if hours > 0 and mins > 0:
+                    tesla_vehicle_additional_charger_rem_str = f"{hours}h{mins}m"
+                elif hours > 0:
+                    tesla_vehicle_additional_charger_rem_str = f"{hours}h"
+                log(f"  Charge rem.: {tesla_vehicle_additional_charger_rem_str}")
+            else:
+                tesla_vehicle_additional_charger_pwr_kw = None
+                tesla_vehicle_additional_charger_rem_str = None
+                log("  Not charging")
+    except Exception as e:
+        log(f"Forced additional data update failed: {e}")
+        pass
+
+def tesla_update_force_needed(interval_sec):
     with tesla_mutex:
         min_update_interval_sec = interval_sec
         if not tesla_vehicle_shift_state or tesla_vehicle_shift_state == "P": # Vehicle parked? Update less frequently to let it sleep.
@@ -209,17 +255,35 @@ def tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec):
 
         global tesla_last_forced_update_try_at
         if tesla_last_forced_update_try_at and int(time.time()) - tesla_last_forced_update_try_at < min_update_interval_sec:
-            return
+            return False
         tesla_last_forced_update_try_at = int(time.time())
 
         # Not doing a forced update if we got a stream update recently.
         if tesla_vehicle_last_seen_ts and int(time.time()) - tesla_vehicle_last_seen_ts < min_update_interval_sec:
-            return
+            return False
+    return True
+
+def tesla_update_force_additional_needed(interval_sec):
+    with tesla_mutex:
+        global tesla_vehicle_additional_ts
+        if not tesla_vehicle_additional_ts or int(time.time()) - tesla_vehicle_additional_ts > max(interval_sec, 60):
+            return True
+    return False
+
+def tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec):
+    update_needed = tesla_update_force_needed(interval_sec)
+    update_additional_needed = tesla_update_force_additional_needed(interval_sec)
+
+    if not update_needed and not update_additional_needed:
+        return
 
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     if vehicle.available(max_age=0):
-        log(f"Vehicle awake, no data received for {min_update_interval_sec} seconds, forcing update")
-        tesla_update_force(tesla, vehicle_nr)
+        log(f"Vehicle awake, forcing update")
+        if update_needed:
+            tesla_update_force(vehicle)
+        if update_additional_needed:
+            tesla_update_force_additional(vehicle)
     else:
         log("Vehicle sleeping")
 
