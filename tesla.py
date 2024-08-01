@@ -44,7 +44,16 @@ def tesla_init(email):
     return tesla
 
 def tesla_get_vehicle(tesla, vehicle_nr):
-    vehicles = tesla.vehicle_list()
+    vehicles = None
+    while not vehicles:
+        try:
+            vehicles = tesla.vehicle_list()
+        except Exception as e:
+            log(f"Vehicle list error: {e}, retrying...")
+            vehicles = None
+            time.sleep(5)
+            pass
+
     if not vehicles:
         print("No registered vehicles")
         exit(1)
@@ -278,7 +287,13 @@ def tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec):
         return
 
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
-    if vehicle.available(max_age=0):
+    try:
+        awake = vehicle.available(max_age=0)
+    except Exception as e:
+        log(f"Vehicle availability check failed: {e}")
+        return
+
+    if awake:
         log(f"Vehicle awake, forcing update")
         if update_needed:
             tesla_update_force(vehicle)
