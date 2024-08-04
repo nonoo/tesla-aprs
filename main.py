@@ -33,9 +33,10 @@ def main(argv):
     interval_sec = os.environ.get('TESLAAPRS_INTERVAL')
     vehicle_nr = os.environ.get('TESLAAPRS_VEHICLE_NR')
     wakeup_on_start = False
+    force_update_only = False
 
     try:
-        opts, _ = getopt.getopt(argv, "e:c:m:si:n:dw", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr=", "wakeup=", "debug="])
+        opts, _ = getopt.getopt(argv, "e:c:m:si:n:wdf", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr=", "wakeup=", "debug=", "forceonly="])
     except getopt.GetoptError:
         print_usage()
         exit(1)
@@ -57,6 +58,8 @@ def main(argv):
             wakeup_on_start = True
         elif opt in ("-d", "--debug"):
             logging.basicConfig(level=logging.DEBUG)
+        elif opt in ("-f", "--forceonly"):
+            force_update_only = True
 
     if not email or not callsign:
         print_usage()
@@ -64,7 +67,7 @@ def main(argv):
 
     signal.signal(signal.SIGINT, sigint_handler)
 
-    process(email, vehicle_nr, wakeup_on_start, interval_sec, callsign, msg)
+    process(email, vehicle_nr, wakeup_on_start, force_update_only, interval_sec, callsign, msg)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
