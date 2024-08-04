@@ -12,6 +12,7 @@ tesla_mutex = multiprocessing.Lock()
 tesla_stream_update_timeout_sec = 30
 tesla_stream_process_handle = None
 tesla_last_forced_update_try_at = None
+tesla_last_forced_additional_update_try_at = None
 
 tesla_vehicle_last_seen_ts = None
 tesla_vehicle_charge_percent = None
@@ -23,7 +24,6 @@ tesla_vehicle_altitude_m = None
 tesla_vehicle_range_km = None
 tesla_vehicle_shift_state = None
 
-tesla_vehicle_additional_ts = None
 tesla_vehicle_additional_outside_temp_str = None
 tesla_vehicle_additional_charger_pwr_kw = None
 tesla_vehicle_additional_charger_rem_str = None
@@ -166,6 +166,9 @@ def tesla_update_force(vehicle):
     log("Forced update...")
     try:
         with tesla_mutex:
+            global tesla_last_forced_update_try_at
+            tesla_last_forced_update_try_at = int(time.time())
+
             log("Forced update results:")
             vehicle_state = vehicle['vehicle_state']
             log(f"  Vehicle name: {vehicle_state['vehicle_name']}")
@@ -221,8 +224,8 @@ def tesla_update_force_additional(vehicle):
     log("Forced additional data update...")
     try:
         with tesla_mutex:
-            global tesla_vehicle_additional_ts
-            tesla_vehicle_additional_ts = int(time.time())
+            global tesla_last_forced_additional_update_try_at
+            tesla_last_forced_additional_update_try_at = int(time.time())
 
             climate_state = vehicle['climate_state']
             if climate_state:
@@ -265,7 +268,6 @@ def tesla_update_force_needed(interval_sec):
         global tesla_last_forced_update_try_at
         if tesla_last_forced_update_try_at and int(time.time()) - tesla_last_forced_update_try_at < min_update_interval_sec:
             return False
-        tesla_last_forced_update_try_at = int(time.time())
 
         # Not doing a forced update if we got a stream update recently.
         if tesla_vehicle_last_seen_ts and int(time.time()) - tesla_vehicle_last_seen_ts < min_update_interval_sec:
@@ -274,8 +276,8 @@ def tesla_update_force_needed(interval_sec):
 
 def tesla_update_force_additional_needed(interval_sec):
     with tesla_mutex:
-        global tesla_vehicle_additional_ts
-        if not tesla_vehicle_additional_ts or int(time.time()) - tesla_vehicle_additional_ts > max(interval_sec, 60):
+        global tesla_last_forced_additional_update_try_at
+        if not tesla_last_forced_additional_update_try_at or int(time.time()) - tesla_last_forced_additional_update_try_at > max(interval_sec, 60):
             return True
     return False
 
@@ -301,6 +303,10 @@ def tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec):
             tesla_update_force_additional(vehicle)
     else:
         log("Vehicle sleeping")
+        global tesla_last_forced_update_try_at
+        tesla_last_forced_update_try_at = int(time.time())
+        global tesla_last_forced_additional_update_try_at
+        tesla_last_forced_additional_update_try_at = int(time.time())
 
 def tesla_wakeup(tesla, vehicle_nr):
     log("Waking up vehicle...")
