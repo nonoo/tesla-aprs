@@ -277,7 +277,7 @@ def tesla_update_force_needed(interval_sec):
 def tesla_update_force_additional_needed(interval_sec):
     with tesla_mutex:
         global tesla_last_forced_additional_update_try_at
-        if not tesla_last_forced_additional_update_try_at or int(time.time()) - tesla_last_forced_additional_update_try_at > max(interval_sec, 60):
+        if not tesla_last_forced_additional_update_try_at or int(time.time()) - tesla_last_forced_additional_update_try_at >= max(interval_sec, 60):
             return True
     return False
 
