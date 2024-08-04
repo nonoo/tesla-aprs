@@ -11,6 +11,7 @@ tesla_mutex = multiprocessing.Lock()
 
 tesla_stream_update_timeout_sec = 30
 tesla_stream_process_handle = None
+tesla_last_stream_update_at = None
 tesla_last_forced_update_try_at = None
 tesla_last_forced_additional_update_try_at = None
 
@@ -119,6 +120,9 @@ def tesla_stream_process_stop():
 
 def tesla_stream_process_data(data):
     with tesla_mutex:
+        global tesla_last_stream_update_at
+        tesla_last_stream_update_at = int(time.time())
+
         log("Stream update received:")
         if 'timestamp' in data:
             global tesla_vehicle_last_seen_ts
@@ -270,7 +274,7 @@ def tesla_update_force_needed(interval_sec):
             return False
 
         # Not doing a forced update if we got a stream update recently.
-        if tesla_vehicle_last_seen_ts and int(time.time()) - tesla_vehicle_last_seen_ts < min_update_interval_sec:
+        if tesla_last_stream_update_at and int(time.time()) - tesla_last_stream_update_at < min_update_interval_sec:
             return False
     return True
 
