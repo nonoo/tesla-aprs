@@ -16,6 +16,8 @@ tesla_last_stream_update_at = None
 tesla_last_forced_update_try_at = None
 tesla_last_forced_additional_update_try_at = None
 
+tesla_vehicles_cached = None
+
 tesla_vehicle_last_seen_ts = None
 tesla_vehicle_charge_percent = None
 tesla_vehicle_lat = None
