@@ -7,11 +7,13 @@ import teslapy
 import os
 import time
 
+TESLA_MIN_FORCE_UPDATE_INTERVAL_WHEN_PARKED_SEC = 60
+TESLA_VEHICLE_ADDITIONAL_MIN_UPDATE_INTERVAL_SEC = 60
+TESLA_STREAM_UPDATE_TIMEOUT_SEC = 30
+TESLA_STREAM_RECONNECT_RETRY_INTERVAL_SEC = 10
+
 tesla_mutex = multiprocessing.Lock()
 
-tesla_min_force_update_interval_when_parked_sec = 60
-tesla_stream_update_timeout_sec = 30
-tesla_stream_reconnect_retry_interval_sec = 10
 tesla_stream_process_handle = None
 tesla_last_stream_update_at = None
 tesla_last_forced_update_try_at = None
@@ -29,7 +31,6 @@ tesla_vehicle_altitude_m = None
 tesla_vehicle_range_km = None
 tesla_vehicle_shift_state = None
 
-tesla_vehicle_additional_min_update_interval_sec = 60
 tesla_vehicle_additional_ts = None
 tesla_vehicle_additional_outside_temp_str = None
 tesla_vehicle_additional_charger_pwr_kw = None
@@ -100,7 +101,7 @@ def tesla_stream_process(email, vehicle_nr, msg_queue):
             log(f"Stream error: {e}")
             pass
 
-        remaining_sec_until_retry = tesla_stream_reconnect_retry_interval_sec - (int(time.time()) - last_connect_ts)
+        remaining_sec_until_retry = TESLA_STREAM_RECONNECT_RETRY_INTERVAL_SEC - (int(time.time()) - last_connect_ts)
         if remaining_sec_until_retry > 0:
             log(f"Stream disconnected, retrying in {remaining_sec_until_retry} seconds...")
             time.sleep(remaining_sec_until_retry)
@@ -278,7 +279,7 @@ def tesla_update_force_needed(interval_sec):
     with tesla_mutex:
         min_update_interval_sec = interval_sec
         if not tesla_vehicle_shift_state or tesla_vehicle_shift_state == "P": # Vehicle parked? Update less frequently to let it sleep.
-            min_update_interval_sec = max(min_update_interval_sec, tesla_min_force_update_interval_when_parked_sec)
+            min_update_interval_sec = max(min_update_interval_sec, TESLA_MIN_FORCE_UPDATE_INTERVAL_WHEN_PARKED_SEC)
 
         global tesla_last_forced_update_try_at
         if tesla_last_forced_update_try_at and int(time.time()) - tesla_last_forced_update_try_at < min_update_interval_sec:
@@ -292,7 +293,7 @@ def tesla_update_force_needed(interval_sec):
 def tesla_update_force_additional_needed(interval_sec):
     with tesla_mutex:
         global tesla_last_forced_additional_update_try_at
-        if not tesla_last_forced_additional_update_try_at or int(time.time()) - tesla_last_forced_additional_update_try_at >= max(interval_sec, tesla_vehicle_additional_min_update_interval_sec):
+        if not tesla_last_forced_additional_update_try_at or int(time.time()) - tesla_last_forced_additional_update_try_at >= max(interval_sec, TESLA_VEHICLE_ADDITIONAL_MIN_UPDATE_INTERVAL_SEC):
             return True
     return False
 

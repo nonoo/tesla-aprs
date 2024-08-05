@@ -91,7 +91,7 @@ def process(email, vehicle_nr, wakeup_on_start, force_update_only, interval_sec,
             if not msg_queue.empty():
                 break
 
-            if not force_update_only and int(time.time()) - last_update_at > tesla_stream_update_timeout_sec:
+            if not force_update_only and int(time.time()) - last_update_at > TESLA_STREAM_UPDATE_TIMEOUT_SEC:
                 log("Tesla update stream timeout, restarting...")
                 tesla_stream_process_stop()
                 tesla_stream_process_start(email, vehicle_nr, msg_queue)
