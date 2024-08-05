@@ -173,6 +173,9 @@ def tesla_update_force(vehicle):
             global tesla_last_forced_update_try_at
             tesla_last_forced_update_try_at = int(time.time())
 
+            global tesla_vehicle_altitude_m
+            tesla_vehicle_altitude_m = None # Elevation data is only provided in the stream update.
+
             log("Forced update results:")
             vehicle_state = vehicle['vehicle_state']
             log(f"  Vehicle name: {vehicle_state['vehicle_name']}")
