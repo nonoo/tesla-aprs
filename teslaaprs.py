@@ -6,19 +6,12 @@ from tesla import *
 import time
 import multiprocessing
 
-last_report_ts = None
-
 def update(callsign, msg):
     vehicle_last_seen_ts, vehicle_charge_percent, vehicle_lat, vehicle_lng, vehicle_speed_kmh, vehicle_heading, \
-        vehicle_altitude_m, vehicle_range_km, vehicle_shift_state, outside_temp_str, charger_pwr_kw, charger_rem_str = tesla_get_data()
+        vehicle_altitude_m, vehicle_range_km, vehicle_shift_state, ts_state, outside_temp_str, charger_pwr_kw, charger_rem_str = tesla_get_data()
 
-    global last_report_ts
-    if vehicle_last_seen_ts == last_report_ts:
-        if vehicle_last_seen_ts:
-            log("Last update timestamp same as last report, skipping")
+    if not vehicle_last_seen_ts:
         return
-
-    last_report_ts = vehicle_last_seen_ts
 
     state = f"Batt. {vehicle_charge_percent}% {vehicle_range_km}km"
 
@@ -34,11 +27,10 @@ def update(callsign, msg):
 
         state += ")"
     elif not vehicle_shift_state or vehicle_shift_state == "P":
-        log("  Parked")
         state += " (Parked)"
 
     aprs_send_location_report(callsign, vehicle_last_seen_ts, vehicle_lat, vehicle_lng, vehicle_speed_kmh,
-                              vehicle_heading, vehicle_altitude_m, msg, state)
+                              vehicle_heading, vehicle_altitude_m, msg, ts_state, state)
 
 def process(email, vehicle_nr, wakeup_on_start, force_update_only, interval_sec, callsign, msg):
     if email:
@@ -92,7 +84,7 @@ def process(email, vehicle_nr, wakeup_on_start, force_update_only, interval_sec,
             tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec)
 
             if sec_to_sleep == 0:
-                update(tesla, vehicle_nr, callsign, msg)
+                update(callsign, msg)
                 log(f"Sleeping for {interval_sec} seconds...")
                 sec_to_sleep = interval_sec
 

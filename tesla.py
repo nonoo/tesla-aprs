@@ -28,6 +28,7 @@ tesla_vehicle_altitude_m = None
 tesla_vehicle_range_km = None
 tesla_vehicle_shift_state = None
 
+tesla_vehicle_additional_ts = None
 tesla_vehicle_additional_outside_temp_str = None
 tesla_vehicle_additional_charger_pwr_kw = None
 tesla_vehicle_additional_charger_rem_str = None
@@ -35,8 +36,8 @@ tesla_vehicle_additional_charger_rem_str = None
 def tesla_get_data():
     with tesla_mutex:
 	    return tesla_vehicle_last_seen_ts, tesla_vehicle_charge_percent, tesla_vehicle_lat, tesla_vehicle_lng, tesla_vehicle_speed_kmh, \
-            tesla_vehicle_heading, tesla_vehicle_altitude_m, tesla_vehicle_range_km, tesla_vehicle_shift_state, tesla_vehicle_additional_outside_temp_str, \
-            tesla_vehicle_additional_charger_pwr_kw, tesla_vehicle_additional_charger_rem_str
+            tesla_vehicle_heading, tesla_vehicle_altitude_m, tesla_vehicle_range_km, tesla_vehicle_shift_state, tesla_vehicle_additional_ts, \
+            tesla_vehicle_additional_outside_temp_str, tesla_vehicle_additional_charger_pwr_kw, tesla_vehicle_additional_charger_rem_str
 
 def tesla_init(email):
     tesla = teslapy.Tesla(email)
@@ -264,6 +265,9 @@ def tesla_update_force_additional(vehicle):
                 tesla_vehicle_additional_charger_pwr_kw = None
                 tesla_vehicle_additional_charger_rem_str = None
                 log("  Not charging")
+
+            global tesla_vehicle_additional_ts
+            tesla_vehicle_additional_ts = int(time.time())
     except Exception as e:
         log(f"Forced additional data update failed: {e}")
         pass
