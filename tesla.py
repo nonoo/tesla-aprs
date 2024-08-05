@@ -15,7 +15,6 @@ tesla_last_stream_update_at = None
 tesla_last_forced_update_try_at = None
 tesla_last_forced_additional_update_try_at = None
 
-tesla_vehicle_cached = None
 tesla_vehicle_last_seen_ts = None
 tesla_vehicle_charge_percent = None
 tesla_vehicle_lat = None
@@ -85,14 +84,12 @@ def tesla_stream_process(email, vehicle_nr, msg_queue):
             return
         tesla.refresh_token(refresh_token=refresh_token)
 
-    if not tesla_vehicle_cached:
-        tesla_vehicle_cached = tesla_get_vehicle(tesla, vehicle_nr)
-
+    vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     while True:
         log("Stream connecting...")
         last_connect_ts = int(time.time())
         try:
-            tesla_vehicle_cached.stream(tesla_stream_cb) # This call blocks
+            vehicle.stream(tesla_stream_cb) # This call blocks
         except Exception as e:
             log(f"Stream error: {e}")
             pass
