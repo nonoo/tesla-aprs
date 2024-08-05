@@ -8,7 +8,7 @@ import multiprocessing
 
 last_report_ts = None
 
-def update(tesla, vehicle_nr, callsign, msg):
+def update(callsign, msg):
     vehicle_last_seen_ts, vehicle_charge_percent, vehicle_lat, vehicle_lng, vehicle_speed_kmh, vehicle_heading, \
         vehicle_altitude_m, vehicle_range_km, vehicle_shift_state, outside_temp_str, charger_pwr_kw, charger_rem_str = tesla_get_data()
 
