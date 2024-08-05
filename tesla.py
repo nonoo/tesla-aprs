@@ -46,25 +46,25 @@ def tesla_init(email):
     return tesla
 
 def tesla_get_vehicle(tesla, vehicle_nr):
-    vehicles = None
-    while not vehicles:
+    global tesla_vehicles_cached
+    while not tesla_vehicles_cached:
         try:
-            vehicles = tesla.vehicle_list()
+            tesla_vehicles_cached = tesla.vehicle_list()
         except Exception as e:
             log(f"Vehicle list error: {e}, retrying...")
-            vehicles = None
+            tesla_vehicles_cached = None
             time.sleep(5)
             pass
 
-    if not vehicles:
+    if not tesla_vehicles_cached:
         print("No registered vehicles")
         exit(1)
 
-    if vehicle_nr >= len(vehicles):
+    if vehicle_nr >= len(tesla_vehicles_cached):
         print("Invalid vehicle number")
         exit(1)
 
-    return vehicles[vehicle_nr]
+    return tesla_vehicles_cached[vehicle_nr]
 
 def tesla_stream_cb(data):
     global stream_msg_queue
