@@ -9,6 +9,7 @@ import time
 
 tesla_mutex = multiprocessing.Lock()
 
+tesla_min_force_update_interval_when_parked_sec = 60
 tesla_stream_update_timeout_sec = 30
 tesla_stream_reconnect_retry_interval_sec = 10
 tesla_stream_process_handle = None
@@ -28,6 +29,7 @@ tesla_vehicle_altitude_m = None
 tesla_vehicle_range_km = None
 tesla_vehicle_shift_state = None
 
+tesla_vehicle_additional_min_update_interval_sec = 60
 tesla_vehicle_additional_ts = None
 tesla_vehicle_additional_outside_temp_str = None
 tesla_vehicle_additional_charger_pwr_kw = None
@@ -276,7 +278,7 @@ def tesla_update_force_needed(interval_sec):
     with tesla_mutex:
         min_update_interval_sec = interval_sec
         if not tesla_vehicle_shift_state or tesla_vehicle_shift_state == "P": # Vehicle parked? Update less frequently to let it sleep.
-            min_update_interval_sec = max(min_update_interval_sec, 60)
+            min_update_interval_sec = max(min_update_interval_sec, tesla_min_force_update_interval_when_parked_sec)
 
         global tesla_last_forced_update_try_at
         if tesla_last_forced_update_try_at and int(time.time()) - tesla_last_forced_update_try_at < min_update_interval_sec:
@@ -290,7 +292,7 @@ def tesla_update_force_needed(interval_sec):
 def tesla_update_force_additional_needed(interval_sec):
     with tesla_mutex:
         global tesla_last_forced_additional_update_try_at
-        if not tesla_last_forced_additional_update_try_at or int(time.time()) - tesla_last_forced_additional_update_try_at >= max(interval_sec, 60):
+        if not tesla_last_forced_additional_update_try_at or int(time.time()) - tesla_last_forced_additional_update_try_at >= max(interval_sec, tesla_vehicle_additional_min_update_interval_sec):
             return True
     return False
 
