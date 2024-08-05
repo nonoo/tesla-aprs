@@ -10,6 +10,7 @@ import time
 tesla_mutex = multiprocessing.Lock()
 
 tesla_stream_update_timeout_sec = 30
+tesla_stream_reconnect_retry_interval_sec = 10
 tesla_stream_process_handle = None
 tesla_last_stream_update_at = None
 tesla_last_forced_update_try_at = None
@@ -94,8 +95,7 @@ def tesla_stream_process(email, vehicle_nr, msg_queue):
             log(f"Stream error: {e}")
             pass
 
-        retry_interval_sec = 10
-        remaining_sec_until_retry = retry_interval_sec - (int(time.time()) - last_connect_ts)
+        remaining_sec_until_retry = tesla_stream_reconnect_retry_interval_sec - (int(time.time()) - last_connect_ts)
         if remaining_sec_until_retry > 0:
             log(f"Stream disconnected, retrying in {remaining_sec_until_retry} seconds...")
             time.sleep(remaining_sec_until_retry)
