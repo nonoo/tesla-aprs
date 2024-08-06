@@ -32,7 +32,7 @@ def update(callsign, msg):
     aprs_send_location_report(callsign, vehicle_last_seen_ts, vehicle_lat, vehicle_lng, vehicle_speed_kmh,
                               vehicle_heading, vehicle_altitude_m, msg, ts_state, state)
 
-def process(email, vehicle_nr, wakeup_on_start, force_update_only, interval_sec, callsign, msg):
+def process(email, vehicle_nr, wakeup_on_start, enable_streaming_updates, interval_sec, callsign, msg):
     if email:
         email = email.strip()
     if callsign:
@@ -54,7 +54,7 @@ def process(email, vehicle_nr, wakeup_on_start, force_update_only, interval_sec,
 
     msg_queue = multiprocessing.Queue()
 
-    if not force_update_only:
+    if enable_streaming_updates:
         tesla_stream_process_start(email, vehicle_nr, msg_queue)
 
     if wakeup_on_start:
@@ -91,7 +91,7 @@ def process(email, vehicle_nr, wakeup_on_start, force_update_only, interval_sec,
             if not msg_queue.empty():
                 break
 
-            if not force_update_only and int(time.time()) - last_update_at > TESLA_STREAM_UPDATE_TIMEOUT_SEC:
+            if enable_streaming_updates and int(time.time()) - last_update_at > TESLA_STREAM_UPDATE_TIMEOUT_SEC:
                 log("Tesla update stream timeout, restarting...")
                 tesla_stream_process_stop()
                 tesla_stream_process_start(email, vehicle_nr, msg_queue)
