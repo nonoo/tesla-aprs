@@ -26,6 +26,7 @@ def print_usage():
 
 def main(argv):
     email = os.environ.get('TESLAAPRS_EMAIL')
+    refresh_token = os.environ.get('TESLAAPRS_REFRESH_TOKEN')
     callsign = os.environ.get('TESLAAPRS_CALLSIGN')
     msg = os.environ.get('TESLAAPRS_MSG')
     if os.environ.get('TESLAAPRS_SILENT'):
@@ -67,7 +68,7 @@ def main(argv):
 
     signal.signal(signal.SIGINT, sigint_handler)
 
-    process(email, vehicle_nr, wakeup_on_start, enable_streaming_updates, interval_sec, callsign, msg)
+    process(email, refresh_token, vehicle_nr, wakeup_on_start, enable_streaming_updates, interval_sec, callsign, msg)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

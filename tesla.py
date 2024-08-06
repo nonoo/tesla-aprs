@@ -42,10 +42,9 @@ def tesla_get_data():
             tesla_vehicle_heading, tesla_vehicle_altitude_m, tesla_vehicle_range_km, tesla_vehicle_shift_state, tesla_vehicle_additional_ts, \
             tesla_vehicle_additional_outside_temp_str, tesla_vehicle_additional_charger_pwr_kw, tesla_vehicle_additional_charger_rem_str
 
-def tesla_init(email):
+def tesla_init(email, refresh_token):
     tesla = teslapy.Tesla(email)
     if not tesla.authorized:
-        refresh_token = os.environ.get('TESLAAPRS_REFRESH_TOKEN')
         if not refresh_token:
             refresh_token = input('Enter Tesla refresh token (see README for details): ')
         tesla.refresh_token(refresh_token=refresh_token)
@@ -76,7 +75,7 @@ def tesla_stream_cb(data):
     global stream_msg_queue
     stream_msg_queue.put(data)
 
-def tesla_stream_process(email, vehicle_nr, msg_queue):
+def tesla_stream_process(email, refresh_token, vehicle_nr, msg_queue):
     log("Stream process started")
 
     global stream_msg_queue
@@ -84,7 +83,6 @@ def tesla_stream_process(email, vehicle_nr, msg_queue):
 
     tesla = teslapy.Tesla(email)
     if not tesla.authorized:
-        refresh_token = os.environ.get('TESLAAPRS_REFRESH_TOKEN')
         if not refresh_token:
             print("No refresh token provided")
             stream_msg_queue.put(None)
@@ -106,13 +104,13 @@ def tesla_stream_process(email, vehicle_nr, msg_queue):
             log(f"Stream disconnected, retrying in {remaining_sec_until_retry} seconds...")
             time.sleep(remaining_sec_until_retry)
 
-def tesla_stream_process_start(email, vehicle_nr, msg_queue):
+def tesla_stream_process_start(email, refresh_token, vehicle_nr, msg_queue):
     log("Stream process starting")
     global tesla_stream_process_handle
     if tesla_stream_process_handle:
         log("Stream process already running")
         return
-    tesla_stream_process_handle = multiprocessing.Process(target=tesla_stream_process, args=(email, vehicle_nr, msg_queue))
+    tesla_stream_process_handle = multiprocessing.Process(target=tesla_stream_process, args=(email, refresh_token, vehicle_nr, msg_queue))
     tesla_stream_process_handle.daemon = True
     tesla_stream_process_handle.start()
 
