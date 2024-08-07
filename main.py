@@ -23,6 +23,9 @@ def print_usage():
     print("  -n, --vehiclenr\tVehicle number, default 0")
     print("  -f, --forceupdate\tForce update on start")
     print("  -d, --debug\t\tEnable debug output")
+    print("  -r, --enable-streaming\tEnable streaming updates")
+    print("  -t, --aprs-symbol-table\tAPRS symbol table character, default /")
+    print("  -o, --aprs-symbol-code\tAPRS symbol code character, default >")
 
 def main(argv):
     email = os.environ.get('TESLAAPRS_EMAIL')
@@ -35,9 +38,12 @@ def main(argv):
     vehicle_nr = os.environ.get('TESLAAPRS_VEHICLE_NR')
     wakeup_on_start = False
     enable_streaming_updates = False
+    aprs_symbol_table_char = os.environ.get('TESLAAPRS_APRS_SYMBOL_TABLE_CHAR')
+    aprs_symbol_code_char = os.environ.get('TESLAAPRS_APRS_SYMBOL_CODE_CHAR')
 
     try:
-        opts, _ = getopt.getopt(argv, "e:c:m:si:n:wdr", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr=", "wakeup=", "debug=", "enablestreaming="])
+        opts, _ = getopt.getopt(argv, "e:c:m:si:n:wdrt:o:", ["email=", "callsign=", "msg=", "silent=", "interval=", "vehiclenr=", "wakeup=", "debug=",
+                                                             "enablestreaming=", "aprssymboltable=", "aprssymbolcode="])
     except getopt.GetoptError:
         print_usage()
         exit(1)
@@ -61,6 +67,10 @@ def main(argv):
             logging.basicConfig(level=logging.DEBUG)
         elif opt in ("-r", "--enable-streaming"):
             enable_streaming_updates = True
+        elif opt in ("-t", "--aprs-symbol-table"):
+            aprs_symbol_table_char = arg
+        elif opt in ("-o", "--aprs-symbol-code"):
+            aprs_symbol_code_char = arg
 
     if not email or not callsign:
         print_usage()
@@ -68,7 +78,7 @@ def main(argv):
 
     signal.signal(signal.SIGINT, sigint_handler)
 
-    process(email, refresh_token, vehicle_nr, wakeup_on_start, enable_streaming_updates, interval_sec, callsign, msg)
+    process(email, refresh_token, vehicle_nr, wakeup_on_start, enable_streaming_updates, interval_sec, callsign, aprs_symbol_table_char, aprs_symbol_code_char, msg)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

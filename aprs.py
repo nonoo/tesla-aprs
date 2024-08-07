@@ -32,7 +32,7 @@ def aprs_send_pkt(pkt):
     global aprs_conn
     aprs_conn.sendall(pkt)
 
-def aprs_send_location_report(callsign, ts, lat, lng, speed_kmh, heading, altitude_m, msg, ts_state, state):
+def aprs_send_location_report(callsign, symbol_table_char, symbol_code_char, ts, lat, lng, speed_kmh, heading, altitude_m, msg, ts_state, state):
     callsign_without_ssid = callsign.split("-")[0]
     aprs_lat = convert_coord_to_aprs(lat, True)
     aprs_lng = convert_coord_to_aprs(lng, False)
@@ -44,7 +44,7 @@ def aprs_send_location_report(callsign, ts, lat, lng, speed_kmh, heading, altitu
     log(f"Sending location and status report...")
 
     day, hours, minutes, seconds = convert_unix_timestamp_to_aprs(ts)
-    pkt1 = f"{callsign}>APTSLA,TCPIP*:@{hours}{minutes}{seconds}h{aprs_lat}{lat_hemisphere}/{aprs_lng}{lng_hemisphere}>{aprs_course:03d}/{aprs_speed:03d}{msg}"
+    pkt1 = f"{callsign}>APTSLA,TCPIP*:@{hours}{minutes}{seconds}h{aprs_lat}{lat_hemisphere}{symbol_table_char}{aprs_lng}{lng_hemisphere}{symbol_code_char}{aprs_course:03d}/{aprs_speed:03d}{msg}"
     if altitude_m != None:
         altitude_feet = int(altitude_m * 3.28084)
         pkt1 += f"/A={altitude_feet:06d}"

@@ -6,7 +6,7 @@ from tesla import *
 import time
 import multiprocessing
 
-def update(callsign, msg):
+def update(callsign, aprs_symbol_table_char, aprs_symbol_code_char, msg):
     vehicle_last_seen_ts, vehicle_charge_percent, vehicle_lat, vehicle_lng, vehicle_speed_kmh, vehicle_heading, \
         vehicle_altitude_m, vehicle_range_km, vehicle_shift_state, ts_state, outside_temp_str, charger_pwr_kw, charger_rem_str = tesla_get_data()
 
@@ -29,10 +29,11 @@ def update(callsign, msg):
     elif not vehicle_shift_state or vehicle_shift_state == "P":
         state += " (Parked)"
 
-    aprs_send_location_report(callsign, vehicle_last_seen_ts, vehicle_lat, vehicle_lng, vehicle_speed_kmh,
-                              vehicle_heading, vehicle_altitude_m, msg, ts_state, state)
+    aprs_send_location_report(callsign, aprs_symbol_table_char, aprs_symbol_code_char, vehicle_last_seen_ts, vehicle_lat, vehicle_lng,
+                              vehicle_speed_kmh, vehicle_heading, vehicle_altitude_m, msg, ts_state, state)
 
-def process(email, refresh_token, vehicle_nr, wakeup_on_start, enable_streaming_updates, interval_sec, callsign, msg):
+def process(email, refresh_token, vehicle_nr, wakeup_on_start, enable_streaming_updates, interval_sec, callsign,
+            aprs_symbol_table_char, aprs_symbol_code_char, msg):
     if email:
         email = email.strip()
     if callsign:
@@ -49,6 +50,20 @@ def process(email, refresh_token, vehicle_nr, wakeup_on_start, enable_streaming_
         vehicle_nr = int(vehicle_nr)
     else:
         vehicle_nr = 0
+
+    if aprs_symbol_table_char:
+        aprs_symbol_table_char.strip()
+        if aprs_symbol_table_char:
+            aprs_symbol_table_char = aprs_symbol_table_char[0]
+    if not aprs_symbol_table_char:
+        aprs_symbol_table_char = "/"
+
+    if aprs_symbol_code_char:
+        aprs_symbol_code_char.strip()
+        if aprs_symbol_code_char:
+            aprs_symbol_code_char = aprs_symbol_code_char[0]
+    if not aprs_symbol_code_char:
+        aprs_symbol_code_char = ">"
 
     tesla = tesla_init(email, refresh_token)
 
@@ -84,7 +99,7 @@ def process(email, refresh_token, vehicle_nr, wakeup_on_start, enable_streaming_
             tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec)
 
             if sec_to_sleep == 0:
-                update(callsign, msg)
+                update(callsign, aprs_symbol_table_char, aprs_symbol_code_char, msg)
                 log(f"Sleeping for {interval_sec} seconds...")
                 sec_to_sleep = interval_sec
 
