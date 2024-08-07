@@ -4,6 +4,8 @@ Sends Tesla vehicle location and status to the APRS-IS.
 
 ## Installation
 
+Note that you can also get this app as a [Home Assistant addon](https://github.com/nonoo/ha-addons).
+
 ### Create a Python virtual environment
 
 ```
