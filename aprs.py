@@ -58,17 +58,21 @@ def aprs_send_location_report(callsign, symbol_table_char, symbol_code_char, ts,
         log("  Location report not changed, skipping")
     aprs_last_pkt1 = pkt1
 
-    day, hours, minutes, seconds = convert_unix_timestamp_to_aprs(ts_state)
-    pkt2 = f"{callsign}>APTSLA,TCPIP*:>{day}{hours}{minutes}z{state}"
+    if ts_state:
+        day, hours, minutes, seconds = convert_unix_timestamp_to_aprs(ts_state)
+        pkt2 = f"{callsign}>APTSLA,TCPIP*:>{day}{hours}{minutes}z{state}"
 
-    global aprs_last_pkt2
-    if aprs_last_pkt2 and pkt2 == aprs_last_pkt2:
-        send_pkt2 = False
+        global aprs_last_pkt2
+        if aprs_last_pkt2 and pkt2 == aprs_last_pkt2:
+            send_pkt2 = False
+        else:
+            send_pkt2 = True
+        if not send_pkt2:
+            log("  Status report not changed, skipping")
+        aprs_last_pkt2 = pkt2
     else:
-        send_pkt2 = True
-    if not send_pkt2:
-        log("  Status report not changed, skipping")
-    aprs_last_pkt2 = pkt2
+        log("  No status report available")
+        send_pkt2 = False
 
     if not send_pkt1 and not send_pkt2:
         return
