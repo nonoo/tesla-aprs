@@ -36,6 +36,8 @@ tesla_vehicle_additional_outside_temp_str = None
 tesla_vehicle_additional_charger_pwr_kw = None
 tesla_vehicle_additional_charger_rem_str = None
 
+tesla_vehicle_awake = True
+
 def tesla_get_data():
     with tesla_mutex:
 	    return tesla_vehicle_last_seen_ts, tesla_vehicle_charge_percent, tesla_vehicle_lat, tesla_vehicle_lng, tesla_vehicle_speed_kmh, \
@@ -276,7 +278,7 @@ def tesla_update_force_additional(vehicle):
 def tesla_update_force_needed(interval_sec):
     with tesla_mutex:
         min_update_interval_sec = interval_sec
-        if not tesla_vehicle_shift_state or tesla_vehicle_shift_state == "P": # Vehicle parked? Update less frequently to let it sleep.
+        if tesla_vehicle_awake and (not tesla_vehicle_shift_state or tesla_vehicle_shift_state == "P"): # Vehicle parked? Update less frequently to let it sleep.
             min_update_interval_sec = max(min_update_interval_sec, TESLA_MIN_FORCE_UPDATE_INTERVAL_WHEN_PARKED_SEC)
 
         global tesla_last_forced_update_try_at
@@ -304,12 +306,13 @@ def tesla_update_force_if_needed(tesla, vehicle_nr, interval_sec):
 
     vehicle = tesla_get_vehicle(tesla, vehicle_nr)
     try:
-        awake = vehicle.available(max_age=0)
+        global tesla_vehicle_awake
+        tesla_vehicle_awake = vehicle.available(max_age=0)
     except Exception as e:
         log(f"Vehicle availability check failed: {e}")
         return
 
-    if awake:
+    if tesla_vehicle_awake:
         log(f"Vehicle awake, forcing update")
         if update_needed:
             tesla_update_force(vehicle)
