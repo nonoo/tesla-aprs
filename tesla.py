@@ -34,7 +34,7 @@ tesla_vehicle_shift_state = None
 tesla_vehicle_additional_ts = None
 tesla_vehicle_additional_outside_temp_str = None
 tesla_vehicle_additional_charger_pwr_kw = None
-tesla_vehicle_additional_charger_rem_str = None
+tesla_vehicle_additional_charger_fin_str = None
 
 tesla_vehicle_awake = True
 
@@ -42,7 +42,7 @@ def tesla_get_data():
     with tesla_mutex:
 	    return tesla_vehicle_last_seen_ts, tesla_vehicle_charge_percent, tesla_vehicle_lat, tesla_vehicle_lng, tesla_vehicle_speed_kmh, \
             tesla_vehicle_heading, tesla_vehicle_altitude_m, tesla_vehicle_range_km, tesla_vehicle_shift_state, tesla_vehicle_additional_ts, \
-            tesla_vehicle_additional_outside_temp_str, tesla_vehicle_additional_charger_pwr_kw, tesla_vehicle_additional_charger_rem_str
+            tesla_vehicle_additional_outside_temp_str, tesla_vehicle_additional_charger_pwr_kw, tesla_vehicle_additional_charger_fin_str
 
 def tesla_init(email, refresh_token):
     tesla = teslapy.Tesla(email)
@@ -256,17 +256,14 @@ def tesla_update_force_additional(vehicle):
                 charger_pwr_str = str(tesla_vehicle_additional_charger_pwr_kw) + "kW"
                 log(f"  Charger pwr: {charger_pwr_str}")
 
-                global tesla_vehicle_additional_charger_rem_str
-                hours, mins = helper.get_hours_and_mins_from_mins(charge_state['minutes_to_full_charge'])
-                tesla_vehicle_additional_charger_rem_str = f"{mins}m"
-                if hours > 0 and mins > 0:
-                    tesla_vehicle_additional_charger_rem_str = f"{hours}h{mins}m"
-                elif hours > 0:
-                    tesla_vehicle_additional_charger_rem_str = f"{hours}h"
-                log(f"  Charge rem.: {tesla_vehicle_additional_charger_rem_str}")
+                global tesla_vehicle_additional_charger_fin_str
+                charge_complete_at = int(time.time()) + int(charge_state['minutes_to_full_charge']) * 60
+                hours, mins = helper.convert_unix_timestamp_to_hours_mins(charge_complete_at)
+                tesla_vehicle_additional_charger_fin_str = f"{hours}:{mins}"
+                log(f"  Charge fin at: {tesla_vehicle_additional_charger_fin_str}")
             else:
                 tesla_vehicle_additional_charger_pwr_kw = None
-                tesla_vehicle_additional_charger_rem_str = None
+                tesla_vehicle_additional_charger_fin_str = None
                 log("  Not charging")
 
             global tesla_vehicle_additional_ts

@@ -8,7 +8,7 @@ import multiprocessing
 
 def update(callsign, aprs_symbol_table_char, aprs_symbol_code_char, msg):
     vehicle_last_seen_ts, vehicle_charge_percent, vehicle_lat, vehicle_lng, vehicle_speed_kmh, vehicle_heading, \
-        vehicle_altitude_m, vehicle_range_km, vehicle_shift_state, ts_state, outside_temp_str, charger_pwr_kw, charger_rem_str = tesla_get_data()
+        vehicle_altitude_m, vehicle_range_km, vehicle_shift_state, ts_state, outside_temp_str, charger_pwr_kw, charger_fin_str = tesla_get_data()
 
     if not vehicle_last_seen_ts:
         return
@@ -22,8 +22,8 @@ def update(callsign, aprs_symbol_table_char, aprs_symbol_code_char, msg):
         charger_pwr_str = str(charger_pwr_kw) + "kW"
         state += f" (Chg {charger_pwr_str}"
 
-        if charger_rem_str:
-            state += f"/{charger_rem_str}"
+        if charger_fin_str:
+            state += f" {charger_fin_str}"
 
         state += ")"
     elif not vehicle_shift_state or vehicle_shift_state == "P":

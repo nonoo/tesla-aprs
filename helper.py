@@ -8,9 +8,10 @@ def exit(code):
     tesla_stream_process_stop()
     sys.exit(code)
 
-def get_hours_and_mins_from_mins(total_minutes):
-    hours = total_minutes // 60
-    minutes = total_minutes % 60
+def convert_unix_timestamp_to_hours_mins(utc_timestamp):
+    dt = datetime.fromtimestamp(utc_timestamp)
+    hours = str(dt.hour).zfill(2)
+    minutes = str(dt.minute).zfill(2)
     return hours, minutes
 
 def get_aprs_passcode_for_callsign(callsign):
