@@ -5,7 +5,7 @@ services:
     build:
       context: .
       pull: true
-    image: makos/tesla-aprs
+    image: nonoo/tesla-aprs
     environment:
       - TESLAAPRS_EMAIL=
       - TESLAAPRS_CALLSIGN=
