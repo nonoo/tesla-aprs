@@ -43,7 +43,7 @@ def process(email, refresh_token, vehicle_nr, wakeup_on_start, enable_streaming_
     else:
         msg = "github.com/nonoo/tesla-aprs"
     if interval_sec:
-        interval_sec = int(interval_sec)
+        interval_sec = max(15, int(interval_sec))
     else:
         interval_sec = 15
     if vehicle_nr:
