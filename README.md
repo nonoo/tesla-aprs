@@ -1,3 +1,7 @@
+# NO LONGER WORKS
+
+Tesla refresh tokens are no longer available, only the (paid) fleet API.
+
 # Tesla APRS
 
 Sends Tesla vehicle location and status to the APRS-IS.
